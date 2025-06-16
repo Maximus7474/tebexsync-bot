@@ -1,0 +1,14 @@
+# directories
+node_modules/
+dist/
+build/
+
+# env variables
+.env
+
+# lock files
+pnpm-lock.yaml
+package-lock.json
+
+# database related files
+*.db

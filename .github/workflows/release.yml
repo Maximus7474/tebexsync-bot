@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    name: Build and Create Tagged release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Install archive tools
+        run: sudo apt install zip
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4.0.0
+        with:
+          version: 9
+      
+      - name: Run pnpm install
+        run: pnpm install
+
+      - name: Get variables
+        id: get_vars
+        run: |
+          echo '::set-output name=SHORT_SHA::$(git rev-parse --short HEAD)'
+          echo '::set-output name=DATE::$(date +'%D')'
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Bump package version
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          if [ "v$CURRENT_VERSION" != "${{ github.ref_name }}" ]; then
+            pnpm version ${{ github.ref_name }} --git-tag-version false
+          else
+            echo "Version in package.json is already up-to-date."
+          fi
+
+      - name: Update repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(git status --porcelain)" != "" ]; then
+            git add .
+            git commit -am 'chore(package): updated version to ${{ github.ref_name }}'
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Create Release
+        uses: 'marvinpinto/action-automatic-releases@v1.2.1'
+        id: auto_release
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          title: 'Version: ${{ env.RELEASE_VERSION }}'
+          prerelease: false
+
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
