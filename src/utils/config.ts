@@ -12,6 +12,8 @@ const fields = {
     DATABASE_PROTOCOL: process.env.DATABASE_PROTOCOL,
     // SQLite setup
     SQLITE_PATH: process.env.SQLITE_PATH,
+    // Tebex secret key
+    TEBEX_SECRET: process.env.TEBEX_SECRET,
 };
 
 interface Config {
@@ -19,6 +21,7 @@ interface Config {
     MAIN_GUILD_ID: string|false;
     DATABASE_PROTOCOL: string|false;
     SQLITE_PATH: string;
+    TEBEX_SECRET: string|false;
 };
 
 if (!fields.DISCORD_BOT_TOKEN) {
@@ -34,6 +37,7 @@ const env: Config = {
     MAIN_GUILD_ID: fields.MAIN_GUILD_ID ?? false,
     DATABASE_PROTOCOL: fields.DATABASE_PROTOCOL ?? false,
     SQLITE_PATH: fields.SQLITE_PATH!,
+    TEBEX_SECRET: fields.TEBEX_SECRET ?? false,
 }
 
 export default env;
