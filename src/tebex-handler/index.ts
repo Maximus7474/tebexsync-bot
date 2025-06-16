@@ -3,63 +3,72 @@ import Config from '../utils/config';
 import { TebexPayment } from '../types';
 
 import Logger from '../utils/logger';
-const logger = new Logger('TEBEX-API');
 
-const TEBEX_API_BASE_URL = 'https://plugin.tebex.io';
-const tebexSecret = Config.TEBEX_SECRET;
+class TebexApi {
+    private static instance: TebexApi;
+    private tebexSecret: string;
+    private TEBEX_API_BASE_URL = 'https://plugin.tebex.io';
+    private logger = new Logger('TEBEX-API');
 
-/**
- * Verifies a purchase by its transaction ID by querying tebex api
- * @param transactionId The unique ID of the Tebex transaction/payment
- * @returns A Promise that resolves with the Payment object if found, otherwise null.
- */
-export async function verifyPurchase(transactionId: string): Promise<TebexPayment | null> {
-    if (!tebexSecret) {
-        logger.error('Tebex Game Server Secret Key is not configured. Please set environment variable TEBEX_SECRET.');
-        return null;
+    private constructor() {
+        if (!Config.TEBEX_SECRET) {
+            throw new Error('Tebex Secret Key is missing. Cannot initialize TebexApi.');
+        }
+        this.tebexSecret = Config.TEBEX_SECRET;
     }
 
-    try {
+    public static getInstance(): TebexApi {
+        if (!TebexApi.instance) {
+            TebexApi.instance = new TebexApi();
+        }
+        return TebexApi.instance;
+    }
 
-        const response = await axios.get<TebexPayment>(`${TEBEX_API_BASE_URL}/payments/${transactionId}`, {
-            headers: {
-                'X-Tebex-Secret': tebexSecret,
-                'Content-Type': 'application/json',
-            },
-            timeout: 5000,
-        });
+    async verifyPurchase(transactionId: string): Promise<TebexPayment | null> {
+        try {
 
-        const payment = response.data;
-
-        if (payment) {
-            // Temporary logging for testing purposes
-            console.log(`Successfully retrieved purchase via Axios for Transaction ID: ${transactionId}`);
-            console.log('--- Purchase Details ---');
-            console.log(`  Customer: ${payment.player.name} (${payment.player.uuid})`);
-            console.log(`  Amount: ${payment.amount} ${payment.currency.iso_4217}`);
-            console.log(`  Status: ${payment.status}`);
-            console.log('  Products Purchased:');
-            payment.packages.forEach((product) => {
-                console.log(`    - ${product.name} (ID: ${product.id}), Quantity: ${product.quantity}`);
+            const response = await axios.get<TebexPayment>(`${this.TEBEX_API_BASE_URL}/payments/${transactionId}`, {
+                headers: {
+                    'X-Tebex-Secret': this.tebexSecret,
+                    'Content-Type': 'application/json',
+                },
+                timeout: 5000,
             });
-            return payment;
-        } else {
-            logger.warn(`No purchase data received for Transaction ID: ${transactionId}`);
+
+            const payment = response.data;
+
+            if (payment) {
+                // Temporary logging for testing purposes
+                console.log(`Successfully retrieved purchase via Axios for Transaction ID: ${transactionId}`);
+                console.log('--- Purchase Details ---');
+                console.log(`  Customer: ${payment.player.name} (${payment.player.uuid})`);
+                console.log(`  Amount: ${payment.amount} ${payment.currency.iso_4217}`);
+                console.log(`  Status: ${payment.status}`);
+                console.log('  Products Purchased:');
+                payment.packages.forEach((product) => {
+                    console.log(`    - ${product.name} (ID: ${product.id}), Quantity: ${product.quantity}`);
+                });
+                return payment;
+            } else {
+                this.logger.warn(`No purchase data received for Transaction ID: ${transactionId}`);
+                return null;
+            }
+        } catch (error: any) { // eslint-disable-line
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === 404) {
+                    this.logger.warn(`Purchase with Transaction ID ${transactionId} not found (HTTP 404).`);
+                } else if (error.response.status === 401) {
+                    this.logger.error(`Authentication error (HTTP 401). Check your Tebex Secret Key.`);
+                } else {
+                    this.logger.error(`Tebex API error for Transaction ID ${transactionId}: HTTP ${error.response.status} - ${error.response.data?.error || error.response.statusText}`);
+                }
+                this.logger.error('Tebex API Error Response Data:', error.response.data);
+            } else {
+                this.logger.error(`Network or unexpected error retrieving purchase for Transaction ID ${transactionId}:`, error.message);
+            }
             return null;
         }
-    } catch (error: any) { // eslint-disable-line
-        if (axios.isAxiosError(error) && error.response) {
-            if (error.response.status === 404) {
-                logger.warn(`Purchase with Transaction ID ${transactionId} not found (HTTP 404).`);
-            } else if (error.response.status === 401) {
-                logger.error(`Authentication error (HTTP 401). Check your Tebex Secret Key.`);
-            } else {
-                logger.error(`Tebex API error for Transaction ID ${transactionId}: HTTP ${error.response.status} - ${error.response.data?.error || error.response.statusText}`);
-            }
-            logger.error('Tebex API Error Response Data:', error.response.data);
-        } else {
-            logger.error(`Network or unexpected error retrieving purchase for Transaction ID ${transactionId}:`, error.message);
-        }
-        return null;
     }
 }
+
+export default TebexApi.getInstance();
