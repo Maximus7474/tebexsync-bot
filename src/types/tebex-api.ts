@@ -21,7 +21,7 @@ export interface TebexPackage {
 export interface TebexPayment {
     id: number;
     amount: string;
-    date: Date;
+    date: string;
     gateway: object;
     status: TebexTransactionStatus;
     currency: TebexCurrency;
