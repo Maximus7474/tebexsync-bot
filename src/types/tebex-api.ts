@@ -32,3 +32,8 @@ export interface TebexPayment {
     notes: any[]; // eslint-disable-line
     creator_code: string | null;
 }
+
+export interface TebexAPIError {
+    success: false;
+    error: string;
+}
