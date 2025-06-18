@@ -1,7 +1,7 @@
 import Config from '../utils/config';
 import verify_purchase from './verify_purchase';
 import Logger from '../utils/logger';
-import { TebexPayment } from '../types';
+import { TebexAPIError, TebexPayment } from '../types';
 
 
 class TebexApi {
@@ -24,7 +24,7 @@ class TebexApi {
         return TebexApi.instance;
     }
 
-    async verifyPurchase(transactionId: string): Promise<TebexPayment | null> {
+    async verifyPurchase(transactionId: string): Promise<{success: true, data: TebexPayment} | TebexAPIError> {
         return await verify_purchase(this.logger, this.TEBEX_API_BASE_URL, this.tebexSecret, transactionId);
     }
 }
