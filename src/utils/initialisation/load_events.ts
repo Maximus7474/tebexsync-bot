@@ -8,33 +8,33 @@ import { pathToFileURL } from 'url';
 const logger = new Logger('LoadEvents');
 
 export default (client: DiscordClient) => {
-    const eventDir = path.join(__dirname, '../../events');
-    const events = getFilesFromDir(eventDir);
+  const eventDir = path.join(__dirname, '../../events');
+  const events = getFilesFromDir(eventDir);
 
-    events.forEach(async (file) => {
-        const filePath = path.join(file);
-        const fileUrl = pathToFileURL(filePath).href;
+  events.forEach(async (file) => {
+    const filePath = path.join(file);
+    const fileUrl = pathToFileURL(filePath).href;
 
-        try {
-            const eventModule = await import(fileUrl);
+    try {
+      const eventModule = await import(fileUrl);
 
-            if (eventModule && eventModule.default) {
-                const { default: event } = eventModule as { default: EventHandler };
+      if (eventModule && eventModule.default) {
+        const { default: event } = eventModule as { default: EventHandler };
 
-                const eventData = event.register();
-                if (eventData.type === 'once') {
-                    client.once(eventData.event, (...args) => event.call(client, ...args));
-                } else {
-                    client.on(eventData.event, (...args) => event.call(client, ...args));
-                }
-
-                logger.success(`Loaded ${eventData.name} for event: ${eventData.event}`)
-            } else {
-                logger.warn(`Unable to load event: ${filePath.slice(eventDir.length + 1)}`)
-            }
-        } catch (error) {
-            console.error(`Failed to load event: ${file}\n`, error);
+        const eventData = event.register();
+        if (eventData.type === 'once') {
+          client.once(eventData.event, (...args) => event.call(client, ...args));
+        } else {
+          client.on(eventData.event, (...args) => event.call(client, ...args));
         }
-    })
+
+        logger.success(`Loaded ${eventData.name} for event: ${eventData.event}`)
+      } else {
+        logger.warn(`Unable to load event: ${filePath.slice(eventDir.length + 1)}`)
+      }
+    } catch (error) {
+      console.error(`Failed to load event: ${file}\n`, error);
+    }
+  })
 }
 

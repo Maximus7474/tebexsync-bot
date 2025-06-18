@@ -25,7 +25,7 @@ export default class SQLiteHandler {
      * @param query - The SQL query string to be executed.
      * @param params - An optional array of parameters to bind to the query placeholders.
      *                 Defaults to an empty array if not provided.
-     * 
+     *
      * @throws {Error} If the query execution fails.
      */
     run(query: string, params: unknown[] = []): void {

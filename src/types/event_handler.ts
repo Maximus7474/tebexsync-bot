@@ -8,9 +8,9 @@ export type EventHandlerSetup = (logger: Logger, client: DiscordClient) => void;
 export type EventHandlerCallback = (logger: Logger, client: DiscordClient, ...args: any[]) => void;
 
 export interface EventHandlerOptions {
-    name: string;
-    eventName: keyof ClientEvents;
-    type: "on" | "once";
-    callback: EventHandlerCallback;
-    setup?: EventHandlerSetup;
+  name: string;
+  eventName: keyof ClientEvents;
+  type: "on" | "once";
+  callback: EventHandlerCallback;
+  setup?: EventHandlerSetup;
 }

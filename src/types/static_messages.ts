@@ -8,8 +8,8 @@ export type StaticMessageSetup = (logger: Logger, client: DiscordClient) => Prom
 export type StaticMessageCallback = (logger: Logger, client: DiscordClient, interaction: StaticMessageInteractions) => Promise<void>;
 
 export interface StaticMessageOptions {
-    name: string;
-    customIds: string[];
-    setup: StaticMessageSetup;
-    callback?: StaticMessageCallback;
+  name: string;
+  customIds: string[];
+  setup: StaticMessageSetup;
+  callback?: StaticMessageCallback;
 }

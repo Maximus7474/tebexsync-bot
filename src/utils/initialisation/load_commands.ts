@@ -8,31 +8,30 @@ import { pathToFileURL } from 'url';
 const logger = new Logger('LoadCommands');
 
 export default (client: DiscordClient) => {
-    const commands = getFilesFromDir(path.join(__dirname, '../../commands'));
+  const commands = getFilesFromDir(path.join(__dirname, '../../commands'));
 
-    commands.forEach(async (file) => {
-        const filePath = path.join(file);
-        const fileUrl = pathToFileURL(filePath).href;
+  commands.forEach(async (file) => {
+    const filePath = path.join(file);
+    const fileUrl = pathToFileURL(filePath).href;
 
-        try {
-            const commandModule = await import(fileUrl);
+    try {
+      const commandModule = await import(fileUrl);
 
-            if (commandModule && commandModule.default) {
-                const { default: command } = commandModule as { default: SlashCommand };
+      if (commandModule && commandModule.default) {
+        const { default: command } = commandModule as { default: SlashCommand };
 
-                const commandName = command.register().name;
+        const commandName = command.register().name;
 
-                client.commands.set(commandName, command.execute.bind(command));
+        client.commands.set(commandName, command.execute.bind(command));
 
-                if (command.hasAutocomplete()) {
-                    client.autocompleteCommands.set(commandName, command.executeAutocomplete.bind(command));
-                }
-
-                logger.success(`Loaded /${commandName}`);
-            }
-        } catch (error) {
-            console.error(`Failed to load command ${file}:`, error);
+        if (command.hasAutocomplete()) {
+          client.autocompleteCommands.set(commandName, command.executeAutocomplete.bind(command));
         }
-    })
-}
 
+        logger.success(`Loaded /${commandName}`);
+      }
+    } catch (error) {
+      console.error(`Failed to load command ${file}:`, error);
+    }
+  })
+}
