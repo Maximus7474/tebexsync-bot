@@ -33,17 +33,9 @@ export default new SlashCommand({
 
         const transactionDetails = await tebexHandler.verifyPurchase(transactionid);
 
-        if (!transactionDetails) {
-            interaction.editReply({
-                flags: [MessageFlags.IsComponentsV2],
-            });
-            return;
-        }
-
         const thumbnail = 'https://cdn-icons-png.freepik.com/256/16802/16802634.png';
 
         const container = new ContainerBuilder()
-            .setAccentColor(65383)
             .addSectionComponents(
                 new SectionBuilder()
                     .setThumbnailAccessory(
@@ -58,10 +50,12 @@ export default new SlashCommand({
                 new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
             );
 
-        if (transactionDetails) {
-            const { player, packages, email, date, amount, currency } = transactionDetails;
+        if (transactionDetails.success) {
+            const { player, packages, email, date, amount, currency } = transactionDetails.data;
 
-            container.addTextDisplayComponents(
+            container
+                .setAccentColor(1950208)
+                .addTextDisplayComponents(
                     new TextDisplayBuilder().setContent(
                         `* Customer: ${player.name} (${player.id})\n`+
                         `* Email: ${email}\n`+
@@ -79,9 +73,11 @@ export default new SlashCommand({
                     ),
                 );
         } else {
-            container.addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(`**No purchase found for transaction ID: ${transactionid}**`)
-            )
+            container
+                .setAccentColor(16711680)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder().setContent(transactionDetails.error)
+                );
         }
 
         await interaction.editReply({
