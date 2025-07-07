@@ -20,4 +20,6 @@ const initDB = (): SQLiteHandler | null => {
 
 const Database = initDB();
 
-export default Database;
+if (Database === null) throw new Error('Database system was not initialized !');
+
+export default Database!;
