@@ -15,8 +15,21 @@ export default class SQLiteHandler {
 
   init(): void {
     const sqlScript = readFileSync(path.join(__dirname, 'base.sql'), 'utf8');
-    const initSql = this.db.prepare(sqlScript);
-    initSql.run();
+
+    const statements = sqlScript
+      .split(/;\s*[\r\n]+/g)
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('/*'));
+
+    for (const stmtText of statements) {
+      try {
+        this.db.prepare(stmtText).run();
+      } catch (error) {
+        console.error(`Error executing SQL statement: ${stmtText}`);
+        console.error((error as Error).message);
+        throw error;
+      }
+    }
   }
 
   /**
