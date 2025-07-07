@@ -5,7 +5,7 @@ BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS `transactions` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tbxid` TEXT UNIQUE NOT NULL,
-    `email` TEXT UNIQUE NOT NULL,
+    `email` TEXT NOT NULL,
     `chargeback` INTEGER DEFAULT 0,
     `discord_id` TEXT NOT NULL,
     `webstore` TEXT NOT NULL,
