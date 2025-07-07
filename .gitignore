@@ -12,3 +12,4 @@ package-lock.json
 
 # database related files
 *.db
+*.db-*
