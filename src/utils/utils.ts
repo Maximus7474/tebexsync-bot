@@ -1,5 +1,8 @@
 import * as fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+export const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const getFilesFromDir = (dirPath: string): string[] => {
   const files: string[] = [];
@@ -18,4 +21,13 @@ export const getFilesFromDir = (dirPath: string): string[] => {
   });
 
   return files;
+}
+
+export const loadConfigFile = <T>(fileName: string): T => {
+  const filePath = path.join(dirname, '..', '..', 'config', fileName);
+
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  const parsedConfig = JSON.parse(fileContent);
+
+  return parsedConfig;
 }
