@@ -1,4 +1,4 @@
-import { gray, green, red, yellow, cyan } from './console_colours';
+import { gray, green, red, yellow, cyan } from './colours';
 
 /**
  * Logger utility class to output formatted console logs with contextual origin and log levels.
