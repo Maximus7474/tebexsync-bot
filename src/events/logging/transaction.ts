@@ -32,12 +32,12 @@ export default new EventHandler({
     }
 
     if (purchaseData.action === 'chargeback') {
-      Database.run('UPDATE `transactions` SET `chargeback` = 1 WHERE `tbxid` = ?', [purchaseData.transactionId]);
+      Database.update('UPDATE `transactions` SET `chargeback` = 1 WHERE `tbxid` = ?', [purchaseData.transactionId]);
 
       logger.info('Handling chargeback notification for', purchaseData.transactionId);
 
-      const customerId = Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transactionId]);
-      const developers = Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transactionId]);
+      const customerId = await Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transactionId]);
+      const developers = await Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transactionId]);
 
       if (customerId?.discord_id) {
         const customerUser = await guild.members.fetch(customerId.discord_id);
@@ -69,7 +69,7 @@ export default new EventHandler({
         }
       }
     } else if (purchaseData.action === 'purchase') {
-      Database.run(
+      Database.insert(
         "INSERT INTO `transactions` (`tbxid`, `email`, `discord_id`, `webstore`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?, ?)",
         [
           purchaseData.transactionId,
@@ -84,7 +84,7 @@ export default new EventHandler({
       const packages = purchaseData.packages.split(',');
 
       for (const pkg of packages) {
-        Database.run(
+        Database.insert(
           "INSERT INTO `transaction_packages` (`tbxid`, `package`) VALUES (?,?)",
           [
             purchaseData.transactionId,
