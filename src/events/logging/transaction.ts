@@ -3,9 +3,10 @@ import EventHandler from "../../classes/event_handler";
 
 import { TebexPurchaseWebhookPayload } from "../../types";
 import Database from "../../utils/database";
+import { loadConfigFile } from "../../utils/utils";
 
-import { customer, customersDeveloper } from '../../../config/roles.json';
-import { payments } from '../../../config/channels.json';
+const { customer, customersDeveloper } = loadConfigFile<{ customer: string; customersDeveloper: string; }>('roles.json');
+const { payments } = loadConfigFile<{ payments: string; }>('channels.json');
 
 // const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
 
