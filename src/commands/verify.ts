@@ -1,4 +1,4 @@
-import { ContainerBuilder, MessageFlags, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
+import { ContainerBuilder, MessageFlags, PermissionsBitField, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
 import tebexHandler from "../tebex_handler";
 
@@ -13,6 +13,7 @@ export default new SlashCommand({
   slashcommand: new SlashCommandBuilder()
     .setName('verify')
     .setDescription('Verify a transaction ID')
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
     .addStringOption(o =>
       o.setName('transactionid')
         .setDescription('Transaction id of the purchase')
