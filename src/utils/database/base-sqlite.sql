@@ -1,7 +1,3 @@
-PRAGMA foreign_keys=ON;
-
-BEGIN TRANSACTION;
-
 CREATE TABLE IF NOT EXISTS `transactions` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tbxid` TEXT UNIQUE NOT NULL,
@@ -31,5 +27,3 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
 
     FOREIGN KEY (`tbxid`) REFERENCES transactions(`tbxid`)
 );
-
-COMMIT;

@@ -1,25 +1,21 @@
+import { DBConnectionDetails } from '@types';
 import Config from '../config';
+import DBHandler from './handler';
 
-import Logger from '../logger';
-import SQLiteHandler from './sqlite';
-const logger = new Logger('Database');
-
-const initDB = (): SQLiteHandler | null => {
-  if (!Config.DATABASE_PROTOCOL) return null;
-
-  switch (Config.DATABASE_PROTOCOL) {
-    case 'SQLITE': {
-      logger.info('Loading SQLite Handler');
-      const Database = new SQLiteHandler(Config.SQLITE_PATH);
-      return Database as SQLiteHandler;
-    }
-    default:
-      throw new Error(`Invalid DATABASE_PROTOCOL: ${Config.DATABASE_PROTOCOL}`);
-  }
+const connectionDetails: DBConnectionDetails = {
+    SQLITE_PATH: Config.SQLITE_PATH,
+    SQL_HOST: Config.SQL_HOST,
+    SQL_PORT: Config.SQL_PORT,
+    SQL_USER: Config.SQL_USER,
+    SQL_DATABASE: Config.SQL_DATABASE,
+    SQL_PASSWORD: Config.SQL_PASSWORD,
 };
 
-const Database = initDB();
+const Database = new DBHandler(connectionDetails);
 
-if (Database === null) throw new Error('Database system was not initialized !');
+const { argv } = process;
+if (argv.includes('--build-db')) {
+    Database.initializeDB();
+}
 
-export default Database!;
+export default Database;
