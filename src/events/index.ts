@@ -4,7 +4,7 @@ import logging from "./logging";
 import ready from "./ready";
 
 export default [
-  logging,
+  ...logging,
   command_handler,
   ready,
 ] as EventHandler[];
