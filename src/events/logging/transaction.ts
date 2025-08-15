@@ -23,19 +23,19 @@ export default new EventHandler({
       purchaseData = JSON.parse(content);
 
       if (!purchaseData || !(
-        purchaseData.action && purchaseData.packages && purchaseData.transactionId
+        purchaseData.action && purchaseData.packageName && purchaseData.transaction
       )) return;
     } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
       return;
     }
 
     if (purchaseData.action === 'chargeback') {
-      Database.update('UPDATE `transactions` SET `chargeback` = 1 WHERE `tbxid` = ?', [purchaseData.transactionId]);
+      Database.update('UPDATE `transactions` SET `chargeback` = 1 WHERE `tbxid` = ?', [purchaseData.transaction]);
 
-      logger.info('Handling chargeback notification for', purchaseData.transactionId);
+      logger.info('Handling chargeback notification for', purchaseData.transaction);
 
-      const customerId = await Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transactionId]);
-      const developers = await Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transactionId]);
+      const customerId = await Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transaction]);
+      const developers = await Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transaction]);
 
       if (customerId?.discord_id) {
         const customerUser = await guild.members.fetch(customerId.discord_id);
@@ -70,30 +70,25 @@ export default new EventHandler({
       }
     } else if (purchaseData.action === 'purchase') {
       Database.insert(
-        "INSERT INTO `transactions` (`tbxid`, `email`, `discord_id`, `webstore`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?, ?)",
         [
-          purchaseData.transactionId,
+          purchaseData.transaction,
           purchaseData.email,
           purchaseData.discordId || 'N/A',
-          purchaseData.webstore,
           purchaseData.purchaserName,
           purchaseData.purchaserUuid
         ]
       );
 
-      const packages = purchaseData.packages.split(',');
+      Database.insert(
+        "INSERT INTO `transaction_packages` (`tbxid`, `package`) VALUES (?,?)",
+        [
+          purchaseData.transaction,
+          purchaseData.packageName,
+        ]
+      );
 
-      for (const pkg of packages) {
-        Database.insert(
-          "INSERT INTO `transaction_packages` (`tbxid`, `package`) VALUES (?,?)",
-          [
-            purchaseData.transactionId,
-            pkg
-          ]
-        );
-      }
-
-      logger.info(`Successfully logged transaction ${purchaseData.transactionId} with ${packages.length} packages.`);
+      logger.info(`Successfully logged transaction ${purchaseData.transaction} for ${purchaseData.packageName}.`);
     } else {
       logger.error(`Unable to identify action for webhook notification ! ${message.url}`);
     }
