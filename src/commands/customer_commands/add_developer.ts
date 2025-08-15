@@ -38,12 +38,12 @@ export default new SlashCommand({
       return;
     }
 
-    const currentDevs = await Database.get<{count: number}>(
-      'SELECT COUNT(`discord_id`) AS `count` FROM `customer_developers` WHERE `tbxid` = ?',
+    const currentDevs = await Database.all<{discord_id: string}>(
+      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `tbxid` = ?',
       [purchase.tbxid]
     );
 
-    if (currentDevs?.count && currentDevs.count > (settings_handler.get('max_developers') as number)) {
+    if (currentDevs.length >= (settings_handler.get('max_developers') as number)) {
       interaction.reply({
         content: `You've already added the maximum amount of developers for your purchase.`,
         flags: MessageFlags.Ephemeral,
@@ -64,6 +64,26 @@ export default new SlashCommand({
 
     const devRoleId = settings_handler.get('customers_dev_role') as string;
     const role = await guild.roles.fetch(devRoleId);
+
+    const alreadyListed = currentDevs.find(({ discord_id }) => discord_id === developer.id)
+    if (alreadyListed && developer.roles.cache.has(devRoleId)) {
+      interaction.reply({
+        content: `<@${developer.id}> is already added as your developer`,
+        flags: MessageFlags.Ephemeral,
+      });
+
+      return;
+    } else if (alreadyListed && role) {
+      await developer.roles.add(role, 'Added as previously owned');
+
+      interaction.reply({
+        content: `The role has been added back to <@${developer.id}>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+
+      return;
+    }
+
     if (role) {
       await developer.roles.add(role, 'Added as developer for purchase');
     } else {
