@@ -33,7 +33,7 @@ class SettingsManager {
           }
         }
 
-        logger.success(`Loaded ${this.settings.size}/${rawSettings.length} settings from database.`);
+        logger.info(`Loaded ${this.settings.size}/${rawSettings.length} settings from database.`);
       })
       .catch(err => {
         logger.error('Unable to load settings from database:', err.message)
