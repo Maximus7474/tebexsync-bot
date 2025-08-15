@@ -40,6 +40,7 @@ export default class SQLiteHandler {
 
     try {
       this.db.exec(sqlScript);
+      logger.success('Succesfully ran initializeDB()');
       return Promise.resolve();
     } catch (error) {
       logger.error(`Error initializing database: ${error}`);
