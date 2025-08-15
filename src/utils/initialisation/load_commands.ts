@@ -21,5 +21,4 @@ export default (client: DiscordClient) => {
       console.error(`Failed to load command ${command.register().name}:`, error);
     }
   })
-}
-
+};
