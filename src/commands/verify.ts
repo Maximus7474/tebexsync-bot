@@ -1,6 +1,6 @@
 import { ContainerBuilder, MessageFlags, PermissionsBitField, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
-import tebexHandler from "../tebex_handler";
+import tebexHandler from "../handlers/tebex_handler";
 
 const formatDateFromString = (dateString: string) => {
   const date = new Date(dateString)
