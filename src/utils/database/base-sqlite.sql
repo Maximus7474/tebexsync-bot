@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
     `added_by` TEXT NOT NULL,
     `added_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
 
+    UNIQUE(tbxid, discord_id),
     FOREIGN KEY (`tbxid`) REFERENCES transactions(`tbxid`)
 );
 
