@@ -1,24 +1,30 @@
 {
-    "compilerOptions": {
-        "target": "ES2020",
-        "lib": [ "ES2020" ],
-        "module": "ESNext",
-        "rootDir": "src",
-        "allowJs": true,
-        "outDir": "dist",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true,
-        "skipLibCheck": true,
-        "moduleResolution": "node",
-        "paths": {
-            "@types": ["./src/types"]
-        }
-    },
-    "include": [
-        "./src"
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "ES2020"
     ],
-    "exclude": [
-        "**/node_modules"
-    ]
+    "module": "ESNext",
+    "rootDir": "src",
+    "allowJs": true,
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "paths": {
+      "@types": [
+        "./src/types"
+      ]
+    },
+    "resolveJsonModule": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./config/**/*.json"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
 }
