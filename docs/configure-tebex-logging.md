@@ -27,19 +27,19 @@ For each of the three actions you just created, you'll need to paste a specific 
   * **For the purchase action**, use this JSON payload:
 
     ```json
-    {"action": "purchase", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
+    {"action": "purchase", "username": "{username}", "price": "{price}", "transaction": "{transaction}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "discordId": "{discordId}"}
     ```
 
   * **For the refund action**, use this JSON payload:
 
     ```json
-    {"action": "refund", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
+    {"action": "refund", "username": "{username}", "price": "{price}", "transaction": "{transaction}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "discordId": "{discordId}"}
     ```
 
   * **For the chargeback action**, use this JSON payload:
 
     ```json
-    {"action": "chargeback", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
+    {"action": "chargeback", "username": "{username}", "price": "{price}", "transaction": "{transaction}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "discordId": "{discordId}"}
     ```
 
 Once you've saved these actions, your Tebex account will now send detailed notifications to your bot whenever a purchase, refund, or chargeback occurs for that package.
