@@ -8,7 +8,7 @@ const logger = new Logger('LoadStaticMessages');
 export default (client: DiscordClient) => {
     const initialiseStaticMessage = async (client: DiscordClient) => {
         const callbackHandler = new Map<string, (client: DiscordClient, interaction: ButtonInteraction|AnySelectMenuInteraction) => Promise<void>>();
-    
+
         static_messages.forEach(async (message) => {
             try {
                 message.initialize(client)
@@ -20,12 +20,12 @@ export default (client: DiscordClient) => {
                     callbackHandler.set(customId, message.handleInteraction.bind(message));
                 });
 
-                logger.success(`Loaded static message: ${message.name}`)
+                logger.info(`Loaded static message: ${message.name}`)
             } catch (error) {
                 console.error(`Failed to load static message: ${message.name}\n`, error);
             }
         });
-    
+
         client.on('interactionCreate', async (interaction) => {
             if (interaction.isButton() || interaction.isAnySelectMenu()) {
                 const { customId } = interaction;
@@ -33,8 +33,6 @@ export default (client: DiscordClient) => {
                 console.log(customId, callbackHandler.keys());
                 if (handler) {
                     await handler(client, interaction);
-                } else {
-                    logger.warn(`No handler found for static message: ${customId}`);
                 }
             }
         });

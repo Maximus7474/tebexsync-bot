@@ -15,7 +15,7 @@ export default (client: DiscordClient) => {
                 client.on(eventData.event, (...args) => event.call(client, ...args));
             }
 
-            logger.success(`Loaded ${eventData.name} for event: ${eventData.event}`)
+            logger.info(`Loaded ${eventData.name} for event: ${eventData.event}`)
         } catch (error) {
             console.error(`Failed to load event: ${event.register().name}\n`, error);
         }

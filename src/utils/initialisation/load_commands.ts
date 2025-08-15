@@ -16,7 +16,7 @@ export default (client: DiscordClient) => {
         client.autocompleteCommands.set(commandName, command.executeAutocomplete.bind(command));
       }
 
-      logger.success(`Loaded /${commandName}`);
+      logger.info(`Loaded /${commandName}`);
     } catch (error) {
       console.error(`Failed to load command ${command.register().name}:`, error);
     }
