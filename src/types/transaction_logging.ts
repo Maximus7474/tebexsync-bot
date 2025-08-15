@@ -1,5 +1,5 @@
 export interface TebexPurchaseWebhookPayload {
-  action: "purchase"|"chargeback";
+  action: "purchase"|"chargeback"|"refund";
   webstore: string;
   username: string;
   price: string;
