@@ -29,8 +29,13 @@ export default new EventHandler({
       return;
     }
 
-    if (purchaseData.action === 'chargeback') {
-      Database.update('UPDATE `transactions` SET `chargeback` = 1 WHERE `tbxid` = ?', [purchaseData.transaction]);
+    if (purchaseData.action === 'chargeback' || purchaseData.action === 'refund') {
+      Database.update(
+        'UPDATE `transactions` SET `' +
+        (purchaseData.action === 'chargeback' ? 'chargeback' : 'refund') +
+        '` = 1 WHERE `tbxid` = ?',
+        [purchaseData.transaction]
+      );
 
       logger.info('Handling chargeback notification for', purchaseData.transaction);
 
