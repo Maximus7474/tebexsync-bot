@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS `transactions` (
     `tbxid` TEXT UNIQUE NOT NULL,
     `email` TEXT NOT NULL,
     `chargeback` INTEGER DEFAULT 0,
+    `refund` INTEGER DEFAULT 0,
     `discord_id` TEXT NOT NULL,
-    `webstore` TEXT NOT NULL,
     `purchaser_name` TEXT NOT NULL,
     `purchaser_uuid` TEXT NOT NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
