@@ -3,10 +3,7 @@ import EventHandler from "../../classes/event_handler";
 
 import { TebexPurchaseWebhookPayload } from "../../types";
 import Database from "../../utils/database";
-import { loadConfigFile } from "../../utils/utils";
-
-const { customer, customersDeveloper } = loadConfigFile<{ customer: string; customersDeveloper: string; }>('roles.json');
-const { payments } = loadConfigFile<{ payments: string; }>('channels.json');
+import SettingsManager from "../../handlers/settings_handler";
 
 // const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
 
@@ -18,7 +15,7 @@ export default new EventHandler({
     const { channel, webhookId, content, guild } = message;
 
     if (!guild) return;
-    if (channel?.id !== payments) return;
+    if (channel?.id !== SettingsManager.get('payment_log_channel') as string) return;
     if (!webhookId) return;
 
     let purchaseData: TebexPurchaseWebhookPayload | null;
@@ -43,7 +40,8 @@ export default new EventHandler({
       if (customerId?.discord_id) {
         const customerUser = await guild.members.fetch(customerId.discord_id);
         if (customerUser) {
-          customerUser.roles.remove(customer)
+          const customerRole = SettingsManager.get('customer_role') as string;
+          customerUser.roles.remove(customerRole)
           .catch(err => {
             logger.error(
               'Unable to remove customer role from',
@@ -55,10 +53,11 @@ export default new EventHandler({
       }
 
       if (developers.length > 0) {
+        const customersDevRole = SettingsManager.get('customers_dev_role') as string;
         for (const { discord_id } of developers) {
           const developerUser = await guild.members.fetch(discord_id);
           if (developerUser) {
-            await developerUser.roles.remove(customersDeveloper)
+            await developerUser.roles.remove(customersDevRole)
             .catch(err => {
               logger.error(
                 'Unable to remove customers developer role from',
