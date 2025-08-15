@@ -44,8 +44,8 @@ class SettingsManager {
     return Array.from(this.settings.keys());
   }
 
-  get<T>(key: string): T | null {
-    return this.settings.get(key) as T ?? null;
+  get(key: string): number | string | object | null {
+    return this.settings.get(key) ?? null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
