@@ -1,6 +1,5 @@
 import { GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import { tbxIdRegex } from "../../utils/utils";
 import Database from "../../utils/database";
 import tebexHandler from "../../handlers/tebex_handler";
 import SettingsManager from "../../handlers/settings_handler";
@@ -16,7 +15,7 @@ export default new SlashCommand({
       .setDescription('Transaction ID provided by the purchase')
       .setRequired(true)
       .setMinLength(20)
-      .setMaxLength(26)
+      .setMaxLength(45)
     ),
   callback: async (logger, client, interaction) => {
     const { user, member, options, guild } = interaction;
@@ -30,14 +29,6 @@ export default new SlashCommand({
     }
 
     const transactionId = options.getString('transactionid', true);
-
-    if (!tbxIdRegex.test(transactionId)) {
-      interaction.reply({
-        content: 'No valid transaction id was provided',
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
 
     let purchaseLog = await Database.get<{
       id: number;
