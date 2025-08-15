@@ -1,3 +1,9 @@
+CREATE TABLE IF NOT EXISTS `settings` (
+    `name` TEXT PRIMARY KEY,
+    `data_type` TEXT NOT NULL,
+    `value` TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS `transactions` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tbxid` TEXT UNIQUE NOT NULL,
