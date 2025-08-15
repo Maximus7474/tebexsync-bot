@@ -1,4 +1,4 @@
-import { ContainerBuilder, MessageFlags, PermissionsBitField, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
+import { ContainerBuilder, MessageFlags, PermissionsBitField, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
 import tebexHandler from "../../handlers/tebex_handler";
 
@@ -34,18 +34,9 @@ export default new SlashCommand({
 
     const transactionDetails = await tebexHandler.verifyPurchase(transactionid);
 
-    const thumbnail = 'https://cdn-icons-png.freepik.com/256/16802/16802634.png';
-
     const container = new ContainerBuilder()
-      .addSectionComponents(
-        new SectionBuilder()
-          .setThumbnailAccessory(
-            new ThumbnailBuilder()
-              .setURL(thumbnail)
-          )
-          .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent("# Transaction Verification"),
-          ),
+      .addTextDisplayComponents(
+        new TextDisplayBuilder({ type: 10, content: '# Transaction Verification' })
       )
       .addSeparatorComponents(
         new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
