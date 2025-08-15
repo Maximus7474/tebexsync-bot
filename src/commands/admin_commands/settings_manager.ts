@@ -31,6 +31,7 @@ export default new SlashCommand({
             .setName("key")
             .setDescription("The name of the setting to set.")
             .setRequired(true)
+            .setAutocomplete(true)
         )
         .addStringOption(o =>
           o
@@ -122,7 +123,7 @@ export default new SlashCommand({
     const focusedOption = interaction.options.getFocused(true);
     const subcommand = interaction.options.getSubcommand();
 
-    if (subcommand === "get" && focusedOption.name === "key") {
+    if ((subcommand === "get" || subcommand === "set") && focusedOption.name === "key") {
       const settings = SettingsManager.get_keys();
 
       const filtered = settings
