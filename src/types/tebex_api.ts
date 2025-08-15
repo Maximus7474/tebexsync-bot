@@ -3,8 +3,7 @@ export interface TebexCurrency {
   symbol: string;
 }
 
-// ToDo: complete with missing status types
-export type TebexTransactionStatus = 'Complete' | string;
+export type TebexTransactionStatus = 'Complete' | 'Refund' | 'Chargeback';
 
 export interface TebexCustomer {
   id: number;
