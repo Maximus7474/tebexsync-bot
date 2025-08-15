@@ -40,4 +40,5 @@ INSERT OR IGNORE INTO `settings` (`name`, `data_type`, `value`) VALUES
     ('customer_role', 'string', 'role_id'),
     ('customers_dev_role', 'string', 'role_id'),
     ('payment_log_channel', 'string', 'channel_id'),
-    ('notifying_discord_id', 'string', 'user_id');
+    ('notifying_discord_id', 'string', 'user_id'),
+    ('max_developers', 'number', 2);
