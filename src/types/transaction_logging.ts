@@ -1,10 +1,8 @@
 export interface TebexPurchaseWebhookPayload {
   action: "purchase"|"chargeback"|"refund";
-  webstore: string;
   username: string;
   price: string;
-  paymentId: string;
-  transactionId: string;
+  transaction: string;
   packageName: string;
   time: string;
   date: string;
@@ -12,6 +10,5 @@ export interface TebexPurchaseWebhookPayload {
   purchaserName: string;
   purchaserUuid: string;
   server: string;
-  packages: string;
   discordId: string;
 }
