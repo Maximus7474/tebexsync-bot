@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS `settings` (
 CREATE TABLE IF NOT EXISTS `transactions` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tbxid` TEXT UNIQUE NOT NULL,
-    `email` TEXT NOT NULL,
+    `email` TEXT,
     `chargeback` INTEGER DEFAULT 0,
     `refund` INTEGER DEFAULT 0,
-    `discord_id` TEXT NOT NULL,
+    `discord_id` TEXT,
     `purchaser_name` TEXT NOT NULL,
     `purchaser_uuid` TEXT NOT NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
 
 /* Default settings */
 INSERT OR IGNORE INTO `settings` (`name`, `data_type`, `value`) VALUES
-    ('customer_role', 'string', 'role_id'),
-    ('customers_dev_role', 'string', 'role_id'),
-    ('payment_log_channel', 'string', 'channel_id'),
-    ('notifying_discord_id', 'string', 'user_id'),
+    ('customer_role', 'string', '1354857644174872737'),
+    ('customers_dev_role', 'string', '1354857695316017334'),
+    ('payment_log_channel', 'string', '1209137239217537126'),
+    ('notifying_discord_id', 'string', '336592756698906626'),
     ('max_developers', 'number', 2);
