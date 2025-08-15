@@ -108,6 +108,14 @@ export default new SlashCommand({
       return;
     }
 
+    if (purchaseLog.discord_id && purchaseLog.discord_id !== user.id) {
+      interaction.reply({
+        content: 'The purchase linked to this transaction ID has already been claimed.\nIf you are related to the user, you can ask him to add you as his developer.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
     const customerRole = SettingsManager.get('customer_role') as string;
 
     const role = await guild.roles.fetch(customerRole);
