@@ -1,68 +1,45 @@
-## Setting Up Tebex Discord Webhooks for Your Bot
+## Setting Up Tebex Discord Notifications for Your Bot
 
-This guide will walk you through configuring Tebex to send purchase and chargeback notifications to your Discord server, which your bot can then process.
+This guide will walk you through the process of setting up **Tebex webhooks** to send purchase, refund, and chargeback notifications directly to your bot.
+
+First, make sure you have the Tebex bot added to your Discord server and have a dedicated channel ready for these notifications.
 
 -----
 
-### Step 1: Access Your Tebex Creator Panel
+### Step 1: Access Your Tebex Account
 
-1.  **Log in** to your Tebex Creator Panel:
-      * [https://creator.tebex.io](https://creator.tebex.io)
+1.  Log in to your Tebex creator account at the **Tebex panel**.
 
-### Step 2: Navigate to Integrations & Notifications
+-----
 
-2.  From the dashboard, go to the **Integrations & Notifications** section:
-      * [https://creator.tebex.io/notifications](https://creator.tebex.io/notifications)
+### Step 2: Configure Webhook Actions
 
-### Step 3: Create a New Discord Notification
+1.  Navigate to the specific package you want to set up notifications for. If you haven't created one yet, **create a new package**.
+2.  Scroll to the bottom of the package page and click on **Discord Actions**.
+3.  Add **three new webhook actions** to handle purchases, refunds, and chargebacks. Make sure each action is configured for the correct event type: **asset purchase**, **refund**, and **chargeback**.
 
-3.  Under the "Discord Notifications" section, click on the **`Setup Notification`** button.
+-----
 
-### Step 4: Create a Discord Webhook URL
+### Step 3: Add JSON Message Payloads
 
-4.  **In your Discord server**:
-      * Go to the channel where you want your bot to receive these raw Tebex webhook messages (e.g., a private `#tebex-logs` channel).
-      * Right-click on the channel name, go to **`Edit Channel`** \> **`Integrations`** \> **`Create Webhook`**.
-      * Give your webhook a recognizable name (e.g., "Tebex Bot Listener").
-      * **Copy the generated Webhook URL**.
+For each of the three actions you just created, you'll need to paste a specific JSON string into the **message field**. This JSON string contains all the information your bot needs to process the notification.
 
-### Step 5: Paste the Webhook URL in Tebex
-
-5.  **Back on the Tebex page**:
-      * Paste the Discord Webhook URL you just copied into the designated input field.
-
-### Step 6: Configure Event Triggers
-
-6.  Ensure the following checkboxes are **checked** for your notification:
-      * `Payment Received`
-      * `Payment Chargeback`
-
-### Step 7: Customize "Payment Received" Message
-
-7.  For the **`Payment Received`** event:
-
-      * Click on **`Customize this event message`**.
-      * In the text area, **delete any existing content** and paste the following exact JSON structure. This specific format is crucial for your bot to correctly parse the purchase data.
-
-    <!-- end list -->
+  * **For the purchase action**, use this JSON payload:
 
     ```json
     {"action": "purchase", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
     ```
 
-### Step 8: Customize "Payment Chargeback" Message
+  * **For the refund action**, use this JSON payload:
 
-8.  For the **`Payment Chargeback`** event:
+    ```json
+    {"action": "refund", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
+    ```
 
-      * Click on **`Customize this event message`**.
-      * In the text area, **delete any existing content** and paste the following exact JSON structure. Notice the `action` field is different, signaling a chargeback.
-
-    <!-- end list -->
+  * **For the chargeback action**, use this JSON payload:
 
     ```json
     {"action": "chargeback", "webstore": "{webstore}", "username": "{username}", "price": "{price}", "paymentId": "{paymentId}", "transactionId": "{transactionId}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": "{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "packages": "{packages}", "discordId": "{discordId}"}
     ```
 
-### Step 9: Finalize Setup
-
-9.  Scroll down and click the **`Create`** button to save your new notification.
+Once you've saved these actions, your Tebex account will now send detailed notifications to your bot whenever a purchase, refund, or chargeback occurs for that package.
