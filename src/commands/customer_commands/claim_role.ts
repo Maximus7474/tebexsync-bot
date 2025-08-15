@@ -116,6 +116,8 @@ export default new SlashCommand({
       return;
     }
 
+    await Database.update('UPDATE `transactions` SET `discord_id` = ? WHERE `tbxid` = ?', [ user.id, transactionId ]);
+
     const customerRole = SettingsManager.get('customer_role') as string;
 
     const role = await guild.roles.fetch(customerRole);
@@ -134,5 +136,7 @@ export default new SlashCommand({
       content: 'Role claim accepted',
       flags: MessageFlags.Ephemeral,
     });
+
+    logger.success(`Purchase: ${transactionId} was claimed by ${user.username} (id: ${user.id})`)
   },
 })
