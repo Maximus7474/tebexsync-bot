@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
 
     FOREIGN KEY (`tbxid`) REFERENCES transactions(`tbxid`)
 );
+
+/* Default settings */
+INSERT OR IGNORE INTO `settings` (`name`, `data_type`, `value`) VALUES
+    ('customer_role', 'string', 'role_id'),
+    ('customers_dev_role', 'string', 'role_id'),
+    ('payment_log_channel', 'string', 'channel_id');
