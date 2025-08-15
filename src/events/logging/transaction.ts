@@ -12,11 +12,11 @@ export default new EventHandler({
   eventName: Events.MessageCreate,
   type: "on",
   callback: async (logger, client, message: Message) => {
-    const { channel, webhookId, content, guild } = message;
+    const { channel, content, guild, author } = message;
 
     if (!guild) return;
     if (channel?.id !== SettingsManager.get('payment_log_channel') as string) return;
-    if (!webhookId) return;
+    if (author.id !== SettingsManager.get('notifying_discord_id') as string) return;
 
     let purchaseData: TebexPurchaseWebhookPayload | null;
     try {
