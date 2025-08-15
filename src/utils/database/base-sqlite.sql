@@ -38,4 +38,5 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
 INSERT OR IGNORE INTO `settings` (`name`, `data_type`, `value`) VALUES
     ('customer_role', 'string', 'role_id'),
     ('customers_dev_role', 'string', 'role_id'),
-    ('payment_log_channel', 'string', 'channel_id');
+    ('payment_log_channel', 'string', 'channel_id'),
+    ('notifying_discord_id', 'string', 'user_id');
