@@ -1,8 +1,8 @@
-import Config from '../utils/config';
-import verify_purchase from './verify_purchase';
-import Logger from '../utils/logger';
-import { TebexAPIError, TebexPayment } from '../types';
+import Config from '../../utils/config';
+import Logger from '../../utils/logger';
+import { TebexAPIError, TebexPayment } from '../../types';
 
+import verify_purchase from './verify_purchase';
 
 class TebexApi {
   private static instance: TebexApi;

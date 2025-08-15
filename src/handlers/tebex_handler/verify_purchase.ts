@@ -1,6 +1,6 @@
 import axios from "axios";
-import { TebexAPIError, TebexPayment } from "../types";
-import type Logger from "../utils/logger";
+import { TebexAPIError, TebexPayment } from "../../types";
+import type Logger from "../../utils/logger";
 
 export default async (logger: Logger, url: string, secret: string, transactionId: string): Promise<{ success: true, data: TebexPayment } | TebexAPIError> => {
   try {
