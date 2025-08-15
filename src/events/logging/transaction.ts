@@ -75,7 +75,7 @@ export default new EventHandler({
       }
     } else if (purchaseData.action === 'purchase') {
       Database.insert(
-        "INSERT OR IGNORE INTO INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?)",
         [
           purchaseData.transaction,
           purchaseData.email,
