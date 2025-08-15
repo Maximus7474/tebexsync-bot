@@ -40,6 +40,10 @@ class SettingsManager {
       });
   }
 
+  get_keys(): string[] {
+    return Array.from(this.settings.keys());
+  }
+
   get<T>(key: string): T | null {
     return this.settings.get(key) as T ?? null;
   }
