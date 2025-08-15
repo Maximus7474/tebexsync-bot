@@ -1,6 +1,6 @@
 import { EmbedBuilder, InteractionContextType, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import SlashCommand from "../classes/slash_command";
-import SettingsManager from "../handlers/settings_handler";
+import SlashCommand from "../../classes/slash_command";
+import SettingsManager from "../../handlers/settings_handler";
 
 export default new SlashCommand({
   name: "settings",
