@@ -31,28 +31,48 @@ export default new EventHandler({
 
       logger.info('Handling chargeback notification for', purchaseData.transaction);
 
-      const customerId = await Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transaction]);
-      const developers = await Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transaction]);
+      const customerId = await Database.get<{ id: number; discord_id: string }>(
+        `SELECT C.discord_id, C.id FROM transactions AS T
+        JOIN customers AS C ON T.customer_id = C.id
+        WHERE T1.tbxid = ?`,
+        [purchaseData.transaction]
+      );
 
-      if (customerId?.discord_id) {
-        const customerUser = await guild.members.fetch(customerId.discord_id);
-        if (customerUser) {
-          const customerRole = SettingsManager.get('customer_role') as string;
-          customerUser.roles.remove(customerRole)
-          .catch(err => {
-            logger.error(
-              'Unable to remove customer role from',
-              customerUser?.user.username ?? customerId,
-              'err:', err
-            );
-          });
-        }
+      if (!customerId) return;
+
+      const { purchases } = await Database.get<{ purchases: number }>(
+        'SELECT COUNT(`transactions`) AS `purchases` WHERE `customer_id` = ? AND `chargeback` = 0, `chargeback` = 0',
+        [customerId.id]
+      ) ?? { purchases: 0 };
+
+      if (purchases > 0) return;
+
+      const developers = await Database.all<{ discord_id: string }>(
+        'SELECT `discord_id` FROM `customer_developers` WHERE `customer_id` = ?',
+        [customerId.id]
+      );
+
+      const customerUser = await guild.members.fetch(customerId.discord_id);
+
+      if (customerUser) {
+        const customerRole = SettingsManager.get('customer_role') as string;
+
+        customerUser.roles.remove(customerRole)
+        .catch(err => {
+          logger.error(
+            'Unable to remove customer role from',
+            customerUser?.user.username ?? customerId.discord_id,
+            'err:', err
+          );
+        });
       }
 
       if (developers.length > 0) {
         const customersDevRole = SettingsManager.get('customers_dev_role') as string;
+
         for (const { discord_id } of developers) {
           const developerUser = await guild.members.fetch(discord_id);
+
           if (developerUser) {
             await developerUser.roles.remove(customersDevRole)
             .catch(err => {
@@ -64,14 +84,28 @@ export default new EventHandler({
             });
           }
         }
+
+        await Database.execute(
+          'DELETE FROM `customer_developers` WHERE `customer_id` = ?',
+          [customerId]
+        );
       }
     } else if (purchaseData.action === 'purchase') {
+      let id = null;
+
+      if (purchaseData.discordId) {
+        id = await Database.insert(
+          "INSERT OR IGNORE INTO `customers` (`discord_id`) VALUES (?)",
+          [purchaseData.discordId]
+        );
+      }
+
       Database.insert(
-        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `email`, `customer_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?)",
         [
           purchaseData.transaction,
           purchaseData.email,
-          purchaseData.discordId || 'N/A',
+          id ?? null,
           purchaseData.purchaserName,
           purchaseData.purchaserUuid
         ]
