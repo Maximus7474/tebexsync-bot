@@ -29,7 +29,7 @@ export default new EventHandler({
         [purchaseData.transaction]
       );
 
-      logger.info('Handling chargeback notification for', purchaseData.transaction);
+      logger.info(`Handling ${purchaseData.action} notification for`, purchaseData.transaction);
 
       const customerId = await Database.get<{ id: number; discord_id: string }>(
         `SELECT C.discord_id, C.id FROM transactions AS T
