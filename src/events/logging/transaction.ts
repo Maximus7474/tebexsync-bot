@@ -34,14 +34,14 @@ export default new EventHandler({
       const customerId = await Database.get<{ id: number; discord_id: string }>(
         `SELECT C.discord_id, C.id FROM transactions AS T
         JOIN customers AS C ON T.customer_id = C.id
-        WHERE T1.tbxid = ?`,
+        WHERE T.tbxid = ?`,
         [purchaseData.transaction]
       );
 
       if (!customerId) return;
 
       const { purchases } = await Database.get<{ purchases: number }>(
-        'SELECT COUNT(`transactions`) AS `purchases` WHERE `customer_id` = ? AND `chargeback` = 0, `chargeback` = 0',
+        'SELECT COUNT(`id`) AS `purchases` WHERE `customer_id` = ? AND `chargeback` = 0 AND `chargeback` = 0',
         [customerId.id]
       ) ?? { purchases: 0 };
 
@@ -87,7 +87,7 @@ export default new EventHandler({
 
         await Database.execute(
           'DELETE FROM `customer_developers` WHERE `customer_id` = ?',
-          [customerId]
+          [customerId.id]
         );
       }
     } else if (purchaseData.action === 'purchase') {
