@@ -1,9 +1,9 @@
 import { Events, Message } from "discord.js";
 import EventHandler from "../../classes/event_handler";
 
-import { TebexPurchaseWebhookPayload } from "../../types";
 import Database from "../../utils/database";
 import SettingsManager from "../../handlers/settings_handler";
+import tebexHandler from "../../handlers/tebex_handler";
 
 // const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
 
@@ -18,16 +18,8 @@ export default new EventHandler({
     if (channel?.id !== SettingsManager.get('payment_log_channel') as string) return;
     if (author.id !== SettingsManager.get('notifying_discord_id') as string) return;
 
-    let purchaseData: TebexPurchaseWebhookPayload | null;
-    try {
-      purchaseData = JSON.parse(content);
-
-      if (!purchaseData || !(
-        purchaseData.action && purchaseData.packageName && purchaseData.transaction
-      )) return;
-    } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      return;
-    }
+    const purchaseData = tebexHandler.parsePurchaseJson(content);
+    if (!purchaseData) return;
 
     if (purchaseData.action === 'chargeback' || purchaseData.action === 'refund') {
       Database.update(
