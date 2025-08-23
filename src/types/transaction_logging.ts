@@ -1,5 +1,5 @@
-export interface TebexPurchaseWebhookPayload {
-  action: "purchase"|"chargeback"|"refund";
+export interface RawTebexPurchasePayload {
+  action: "purchase" | "chargeback" | "refund";
   username: string;
   price: string;
   transaction: string;
@@ -11,4 +11,9 @@ export interface TebexPurchaseWebhookPayload {
   purchaserUuid: string;
   server: string;
   discordId: string;
+}
+
+export interface TebexPurchasePayload extends Omit<RawTebexPurchasePayload, 'discordId'> {
+  timestamp: number;
+  discordId: string | null;
 }
