@@ -44,7 +44,7 @@ export default class SQLiteHandler {
       return Promise.resolve();
     } catch (error) {
       logger.error(`Error initializing database: ${error}`);
-      return Promise.reject(error);
+      process.exit(1);
     }
   }
 

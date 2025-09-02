@@ -4,16 +4,23 @@ CREATE TABLE IF NOT EXISTS `settings` (
     `value` TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS `customers` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `discord_id` TEXT UNIQUE,
+    `added_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS `transactions` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tbxid` TEXT UNIQUE NOT NULL,
-    `email` TEXT,
+    `customer_id` INTEGER,
     `chargeback` INTEGER DEFAULT 0,
     `refund` INTEGER DEFAULT 0,
-    `discord_id` TEXT,
     `purchaser_name` TEXT NOT NULL,
     `purchaser_uuid` TEXT NOT NULL,
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `transaction_packages` (
@@ -26,13 +33,13 @@ CREATE TABLE IF NOT EXISTS `transaction_packages` (
 
 CREATE TABLE IF NOT EXISTS `customer_developers` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `tbxid` TEXT NOT NULL,
+    `customer_id` INTEGER NOT NULL,
     `discord_id` TEXT NOT NULL,
     `added_by` TEXT NOT NULL,
     `added_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE(tbxid, discord_id),
-    FOREIGN KEY (`tbxid`) REFERENCES transactions(`tbxid`)
+    UNIQUE(customer_id, discord_id),
+    FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)
 );
 
 /* Default settings */

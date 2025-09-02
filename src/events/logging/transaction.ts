@@ -1,9 +1,9 @@
 import { Events, Message } from "discord.js";
 import EventHandler from "../../classes/event_handler";
 
-import { TebexPurchaseWebhookPayload } from "../../types";
 import Database from "../../utils/database";
 import SettingsManager from "../../handlers/settings_handler";
+import tebexHandler from "../../handlers/tebex_handler";
 
 // const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
 
@@ -18,16 +18,8 @@ export default new EventHandler({
     if (channel?.id !== SettingsManager.get('payment_log_channel') as string) return;
     if (author.id !== SettingsManager.get('notifying_discord_id') as string) return;
 
-    let purchaseData: TebexPurchaseWebhookPayload | null;
-    try {
-      purchaseData = JSON.parse(content);
-
-      if (!purchaseData || !(
-        purchaseData.action && purchaseData.packageName && purchaseData.transaction
-      )) return;
-    } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      return;
-    }
+    const purchaseData = tebexHandler.parsePurchaseJson(content);
+    if (!purchaseData) return;
 
     if (purchaseData.action === 'chargeback' || purchaseData.action === 'refund') {
       Database.update(
@@ -37,30 +29,50 @@ export default new EventHandler({
         [purchaseData.transaction]
       );
 
-      logger.info('Handling chargeback notification for', purchaseData.transaction);
+      logger.info(`Handling ${purchaseData.action} notification for`, purchaseData.transaction);
 
-      const customerId = await Database.get<{ discord_id: string }>('SELECT `discord_id` FROM `transactions` WHERE `tbxid` = ?', [purchaseData.transaction]);
-      const developers = await Database.all<{ discord_id: string }>('SELECT `discord_id` FROM `customer_developers` WHERE `tbxid` = ?', [purchaseData.transaction]);
+      const customerId = await Database.get<{ id: number; discord_id: string }>(
+        `SELECT C.discord_id, C.id FROM transactions AS T
+        JOIN customers AS C ON T.customer_id = C.id
+        WHERE T.tbxid = ?`,
+        [purchaseData.transaction]
+      );
 
-      if (customerId?.discord_id) {
-        const customerUser = await guild.members.fetch(customerId.discord_id);
-        if (customerUser) {
-          const customerRole = SettingsManager.get('customer_role') as string;
-          customerUser.roles.remove(customerRole)
-          .catch(err => {
-            logger.error(
-              'Unable to remove customer role from',
-              customerUser?.user.username ?? customerId,
-              'err:', err
-            );
-          });
-        }
+      if (!customerId) return;
+
+      const { purchases } = await Database.get<{ purchases: number }>(
+        'SELECT COUNT(`id`) AS `purchases` WHERE `customer_id` = ? AND `chargeback` = 0 AND `chargeback` = 0',
+        [customerId.id]
+      ) ?? { purchases: 0 };
+
+      if (purchases > 0) return;
+
+      const developers = await Database.all<{ discord_id: string }>(
+        'SELECT `discord_id` FROM `customer_developers` WHERE `customer_id` = ?',
+        [customerId.id]
+      );
+
+      const customerUser = await guild.members.fetch(customerId.discord_id);
+
+      if (customerUser) {
+        const customerRole = SettingsManager.get('customer_role') as string;
+
+        customerUser.roles.remove(customerRole)
+        .catch(err => {
+          logger.error(
+            'Unable to remove customer role from',
+            customerUser?.user.username ?? customerId.discord_id,
+            'err:', err
+          );
+        });
       }
 
       if (developers.length > 0) {
         const customersDevRole = SettingsManager.get('customers_dev_role') as string;
+
         for (const { discord_id } of developers) {
           const developerUser = await guild.members.fetch(discord_id);
+
           if (developerUser) {
             await developerUser.roles.remove(customersDevRole)
             .catch(err => {
@@ -72,20 +84,29 @@ export default new EventHandler({
             });
           }
         }
+
+        await Database.execute(
+          'DELETE FROM `customer_developers` WHERE `customer_id` = ?',
+          [customerId.id]
+        );
       }
     } else if (purchaseData.action === 'purchase') {
-      Database.insert(
-        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?)",
+
+      const id: number | null = purchaseData.discordId
+        ? await tebexHandler.getCustomerInternalId(purchaseData.discordId)
+        : null;
+
+      await Database.insert(
+        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?)",
         [
           purchaseData.transaction,
-          purchaseData.email,
-          purchaseData.discordId || 'N/A',
+          id,
           purchaseData.purchaserName,
           purchaseData.purchaserUuid
         ]
       );
 
-      Database.insert(
+      await Database.insert(
         "INSERT INTO `transaction_packages` (`tbxid`, `package`) VALUES (?,?)",
         [
           purchaseData.transaction,
