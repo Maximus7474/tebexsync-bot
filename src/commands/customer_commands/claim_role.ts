@@ -58,10 +58,7 @@ export default new SlashCommand({
           return;
         }
 
-        const customerId = await Database.insert(
-          "INSERT OR IGNORE INTO `customers` (`discord_id`) VALUES (?)",
-          [user.id]
-        );
+        const customerId = await tebexHandler.getCustomerInternalId(user.id);
 
         const id = await Database.insert(
           "INSERT INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`, `refund`, `chargeback`) VALUES (?, ?, ?, ?, ?, ?)",
