@@ -1,6 +1,7 @@
 import { ContainerBuilder, MessageFlags, PermissionsBitField, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
 import tebexHandler from "../../handlers/tebex_handler";
+import Database from "../../utils/database";
 
 const formatDateFromString = (dateString: string) => {
   const date = new Date(dateString)
@@ -45,6 +46,19 @@ export default new SlashCommand({
     if (transactionDetails.success) {
       const { player, packages, email, date, amount, currency } = transactionDetails.data;
 
+      const purchaseData = await Database.get<{
+        purchaser_name: string;
+        purchaser_uuid: string;
+        discord_id: string;
+      }>(
+        `SELECT
+          C.discord_id
+        FROM transactions AS T
+        LEFT JOIN customers AS C ON T.customer_id = C.id
+        WHERE T.tbxid = ?`,
+        [ transactionid ]
+      );
+
       container
         .setAccentColor(1950208)
         .addTextDisplayComponents(
@@ -53,7 +67,12 @@ export default new SlashCommand({
             `* Email: ${email}\n` +
             `* Packages:\n` +
             packages.map(({ name, id }) => `  * ${name} (${id})`).join('\n') + '\n' +
-            `* Amount: ${amount}${currency.symbol}`
+            `* Amount: ${amount}${currency.symbol}`+
+            (
+              purchaseData
+                ? `* Linked discord: <@${purchaseData.discord_id}`
+                : '* Purchase is unclaimed'
+            )
           ),
         )
         .addSeparatorComponents(
