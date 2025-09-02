@@ -31,11 +31,20 @@ export default new SlashCommand({
     const transactionId = options.getString('transactionid', true);
 
     let purchaseLog = await Database.get<{
-      id: number;
+      customer_id: number | null;
       discord_id: string | null;
       refund: 0 | 1;
       chargeback: 0 | 1;
-    }>('SELECT * FROM `transactions` WHERE `tbxid` = ?', [ transactionId ]);
+    }>(`SELECT
+          C.discord_id,
+          C.id as customer_id,
+          T.refund,
+          T.chargeback
+        FROM transactions AS T
+        LEFT JOIN customers AS C ON T.customer_id = C.id
+        WHERE T.tbxid = ?`,
+      [transactionId]
+    );
 
     if (!purchaseLog) {
       try {
@@ -49,12 +58,16 @@ export default new SlashCommand({
           return;
         }
 
+        const customerId = await Database.insert(
+          "INSERT OR IGNORE INTO `customers` (`discord_id`) VALUES (?)",
+          [user.id]
+        );
+
         const id = await Database.insert(
-          "INSERT INTO INTO `transactions` (`tbxid`, `email`, `discord_id`, `purchaser_name`, `purchaser_uuid`, `refund`, `chargeback`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`, `refund`, `chargeback`) VALUES (?, ?, ?, ?, ?, ?)",
           [
             transactionId,
-            rawPurchaseData.data.email,
-            user.id,
+            customerId,
             rawPurchaseData.data.player.name,
             rawPurchaseData.data.player.uuid,
             rawPurchaseData.data.status === 'Refund' ? 1 : 0,
@@ -74,13 +87,13 @@ export default new SlashCommand({
         }
 
         purchaseLog = {
-          id,
+          customer_id: customerId,
           discord_id: user.id,
           refund: rawPurchaseData.data.status === 'Refund' ? 1 : 0,
           chargeback: rawPurchaseData.data.status === 'Chargeback' ? 1 : 0
         }
-      } catch (err: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
-        logger.error('Unable to insert purchase to database ! Error:', err);
+      } catch (err: any) {  // eslint-disable-line
+        logger.error('Unable to insert purchase to database !');
         logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert into database.`);
 
         interaction.reply({
@@ -99,7 +112,7 @@ export default new SlashCommand({
       return;
     }
 
-    if (purchaseLog.discord_id && purchaseLog.discord_id !== user.id) {
+    if (purchaseLog.customer_id && purchaseLog.discord_id !== user.id) {
       interaction.reply({
         content: 'The purchase linked to this transaction ID has already been claimed.\nIf you are related to the user, you can ask him to add you as his developer.',
         flags: MessageFlags.Ephemeral,
@@ -107,7 +120,31 @@ export default new SlashCommand({
       return;
     }
 
-    await Database.update('UPDATE `transactions` SET `discord_id` = ? WHERE `tbxid` = ?', [ user.id, transactionId ]);
+    if (!purchaseLog.customer_id) {
+      let customer = await Database.get<{id: number}>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ user.id ]);
+
+      if (!customer) {
+        const id = await Database.insert(
+          "INSERT INTO `customers` (`discord_id`) VALUES (?)",
+          [ user.id ]
+        );
+
+        if (!id) {
+          logger.error('Unable to insert customer to database !');
+          logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert him into the customer channel.`);
+
+          interaction.reply({
+            content: 'An error has occured while checking your transaction ID.',
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        customer = { id };
+      }
+
+      await Database.update('UPDATE `transactions` SET `customer_id` = ? WHERE `tbxid` = ?', [ customer.id, transactionId ]);
+    }
 
     const customerRole = SettingsManager.get('customer_role') as string;
 
