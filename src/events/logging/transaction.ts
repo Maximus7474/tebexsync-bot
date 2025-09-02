@@ -96,7 +96,7 @@ export default new EventHandler({
         ? await tebexHandler.getCustomerInternalId(purchaseData.discordId)
         : null;
 
-      Database.insert(
+      await Database.insert(
         "INSERT OR IGNORE INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?)",
         [
           purchaseData.transaction,
@@ -106,7 +106,7 @@ export default new EventHandler({
         ]
       );
 
-      Database.insert(
+      await Database.insert(
         "INSERT INTO `transaction_packages` (`tbxid`, `package`) VALUES (?,?)",
         [
           purchaseData.transaction,
