@@ -91,21 +91,16 @@ export default new EventHandler({
         );
       }
     } else if (purchaseData.action === 'purchase') {
-      let id = null;
 
-      if (purchaseData.discordId) {
-        id = await Database.insert(
-          "INSERT OR IGNORE INTO `customers` (`discord_id`) VALUES (?)",
-          [purchaseData.discordId]
-        );
-      }
+      const id: number | null = purchaseData.discordId
+        ? await tebexHandler.getCustomerInternalId(purchaseData.discordId)
+        : null;
 
       Database.insert(
-        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `email`, `customer_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`) VALUES (?, ?, ?, ?)",
         [
           purchaseData.transaction,
-          purchaseData.email,
-          id ?? null,
+          id,
           purchaseData.purchaserName,
           purchaseData.purchaserUuid
         ]
