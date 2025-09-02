@@ -5,13 +5,12 @@
 ---
 
 ## Table of Contents
-- [Discord TS Boilerplate](#discord-ts-boilerplate)
-  - [Table of Contents](#table-of-contents)
-  - [📦 Setup](#-setup)
-  - [🚀 Deploying](#-deploying)
-    - [Deployment Steps:](#deployment-steps)
-  - [🗄️ Database Management](#️-database-management)
-  - [⚠️ Security Warning: DO NOT MAKE THE `.env` FILE PUBLIC](#️-security-warning-do-not-make-the-env-file-public)
+- [Table of Contents](#table-of-contents)
+- [📦 Setup](#-setup)
+- [🚀 Deploying](#-deploying)
+- [Deployment Steps:](#deployment-steps)
+- [🗄️ Database Management](#️-database-management)
+- [⚠️ Security Warning: DO NOT MAKE THE `.env` FILE PUBLIC](#️-security-warning-do-not-make-the-env-file-public)
 
 ---
 
