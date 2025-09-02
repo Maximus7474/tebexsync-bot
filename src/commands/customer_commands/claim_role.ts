@@ -72,6 +72,14 @@ export default new SlashCommand({
           ]
         );
 
+        for (let i = 0; i < rawPurchaseData.data.packages.length; i++) {
+          const packageData = rawPurchaseData.data.packages[i];
+          await Database.insert(
+            'INSERT OR IGNORE INTO `transaction_packages` (`tbxid`, `package`) VALUES (?, ?)',
+            [ transactionId, packageData.name ]
+          );
+        }
+
         if (!id) {
           logger.error('Unable to insert purchase to database !');
           logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert into database.`);
