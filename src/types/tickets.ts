@@ -3,7 +3,7 @@ export interface TicketCategory {
   name: string;
   description: string;
   emoji: string | null;
-  category_channel: string;
+  category_id: string;
   require_tbxid: 1 | 0;
 }
 
