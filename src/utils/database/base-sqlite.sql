@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `ticket_categories` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL UNIQUE,
     `description` TEXT DEFAULT NULL,
+    `emoji` TEXT DEFAULT NULL, -- used for static message in dropdown menu
     `category_id` TEXT NOT NULL UNIQUE, -- discord category channel id
     `require_tbxid` INTEGER DEFAULT 1
 );
