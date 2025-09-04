@@ -39,10 +39,15 @@ class Ticket {
     for (let idx = 0; idx < tickets.length; idx++) {
       const ticketData = tickets[idx];
 
-      const channel = await client.channels.fetch(ticketData.channel_id) as TextChannel | null;
+      try {
+        const channel = await client.channels.fetch(ticketData.channel_id) as TextChannel | null;
 
-      if (!channel) {
-        logger.warn(`Ticket ${ticketData.id} was closed manually (channel deleted), closing in database.`);
+        if (!channel) throw new Error('No channel was found.')
+
+        const ticket = new Ticket(channel, ticketData.id);
+        this.ActiveTickets.set(channel.id, ticket);
+      } catch (err) {
+        logger.warn(`Ticket ${ticketData.id} was closed manually (${(err as Error).message}), closing in database.`);
 
         const date = FormatDateForDB();
         await Database.execute('UPDATE `tickets` SET `closed_at` = ? WHERE `id` = ?', [ date, ticketData.id ])
@@ -60,12 +65,7 @@ class Ticket {
             `<EMBED:${JSON.stringify(closureEmbed.toJSON())}>`,
           ]
         );
-
-        continue;
       }
-
-      const ticket = new Ticket(channel, ticketData.id);
-      this.ActiveTickets.set(channel.id, ticket);
     }
 
     logger.success(`Reloaded ${this.ActiveTickets.size} tickets from database`);
