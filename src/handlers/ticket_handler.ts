@@ -380,16 +380,15 @@ class Ticket {
       return;
     }
 
+    await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+
     const success = await ticket.closeTicket(interaction.user, closureReason);
 
     if (success) {
       this.ActiveTickets.delete(channelId);
     }
 
-    modalInteraction.reply({
-      content: success ? 'Ticket closed' : 'Failed to close',
-      flags: MessageFlags.Ephemeral,
-    });
+    await modalInteraction.deleteReply();
   }
 
   ticketId: number;
@@ -472,7 +471,11 @@ class Ticket {
       ]
     );
 
-    await this.channel.delete(`Ticket closed by ${user.username}${reason ? `: ${reason}` : ''}`);
+    setTimeout(() => {
+      this.channel.delete(`Ticket closed by ${user.username}${reason ? `: ${reason}` : ''}`)
+      .catch(err => logger.error(`An error occured (${(err as Error).message}) when deleting the ticket ${this.ticketId} channel ${this.channel.id}`));
+    }, 500);
+
 
     return true;
   }
