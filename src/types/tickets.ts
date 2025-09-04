@@ -25,6 +25,7 @@ export interface DatabaseTicket {
   id: number;
   category: number;
   ticket_name: string;
+  channel_id: string;
 
   user_id: string;
   user_username: string;
