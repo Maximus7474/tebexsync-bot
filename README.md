@@ -1,8 +1,24 @@
-# Discord Tebex Bot
+# TebexSync-Discord-Bot
+
+TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatically grant buyers channel access and features a flexible ticket system with dynamic fields for efficient and organized support.
 
 > [!IMPORTANT]
-> This project is not affiliated in any way with Tebex Limited.
+> This project is **not affiliated** in any way with Tebex Limited.
 > It is a third party application provided and maintained by Maximus7474 to help organizations selling on tebex to grant customer roles on their discord server and provide systems to simplify purchase verification and providing support.
+
+## Features
+
+### Ticket System Features:
+* Customizable Ticket Categories: Create multiple ticket categories, each with different prerequisites.
+* Transaction ID Verification: Tickets can be configured to require a valid transaction ID from your Tebex store.
+* Dynamic Forms: A modal form displays fields linked to the ticket category, with options for required inputs and minimum/maximum length.
+* Support Workflow: Users can add others to a ticket, and the system includes a closure feature with an optional reason.
+
+### Customer Role Management
+* Automatic Role Assignment: Customers who make a purchase with a linked Discord account will automatically receive their roles.
+* Manual Claiming: Users without a linked account can claim their roles by using a command with their transaction ID.
+* Developer Access: Customers can grant access to a configurable number of developers.
+* Purchase Status Sync: Roles are automatically removed if a purchase is refunded, chargebacked, or canceled. These roles cannot be claimed again.
 
 ---
 
