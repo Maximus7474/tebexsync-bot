@@ -432,8 +432,16 @@ class Ticket {
       });
 
       const embed = new EmbedBuilder()
+        .setAuthor({
+          name: userWhoAddedTheOtherUserNiceVariableName.username,
+          iconURL: userWhoAddedTheOtherUserNiceVariableName.avatarURL({
+            forceStatic: true,
+            extension: 'webp',
+            size: 128
+          }) ?? undefined
+        })
         .setTitle('New ticket participant')
-        .setDescription(`<@${addedUser.id}> was added to the ticket by <@${userWhoAddedTheOtherUserNiceVariableName.id}>`)
+        .setDescription(`<@${addedUser.id}> was added to the ticket`)
 
       this.channel.send({
         embeds: [embed]
