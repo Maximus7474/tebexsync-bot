@@ -1,6 +1,8 @@
-# Discord TS Boilerplate
+# Discord Tebex Bot
 
-*Inspired by [discord-js-template](https://github.com/Maximus7474/discord-js-template) originaly created by [Furious Feline](https://github.com/FissionFeline)*
+> [!IMPORTANT]
+> This project is not affiliated in any way with Tebex Limited.
+> It is a third party application provided and maintained by Maximus7474 to help organizations selling on tebex to grant customer roles on their discord server and provide systems to simplify purchase verification and providing support.
 
 ---
 
