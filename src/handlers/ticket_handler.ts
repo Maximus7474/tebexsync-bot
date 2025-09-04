@@ -21,11 +21,11 @@ import {
   TextInputStyle,
   User,
 } from "discord.js";
-import Database from "../../utils/database";
-import Tebex from "../tebex_handler";
-import Logger from "../../utils/logger";
-import env from "../../utils/config";
-import { FormatDateForDB } from "../../utils/utils";
+import Database from "../utils/database";
+import Tebex from "./tebex_handler";
+import Logger from "../utils/logger";
+import env from "../utils/config";
+import { FormatDateForDB } from "../utils/utils";
 
 const logger = new Logger('ticket-handler');
 
