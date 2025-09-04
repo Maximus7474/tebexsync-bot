@@ -22,10 +22,14 @@ export interface TicketCategoryData extends TicketCategory {
 }
 
 export interface DatabaseTicket {
+  id: number;
   category: number;
   ticket_name: string;
 
   user_id: string;
   user_username: string;
   user_display_name: string;
+
+  opened_at: string;
+  closed_at: string | null;
 }
