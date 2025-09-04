@@ -410,7 +410,7 @@ class Ticket {
       for (let idx = 0; idx < message.embeds.length; idx++) {
         embeds[idx] = `<EMBED:${JSON.stringify(message.embeds[idx].toJSON())}>\n`;
       }
-      content += `\n\n${embeds.join('\n')}`;
+      content += `${content.length > 0 ? '\n\n' : ''}${embeds.join('\n')}`;
     }
 
     await Database.insert(
