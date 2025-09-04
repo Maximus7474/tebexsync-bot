@@ -389,6 +389,35 @@ class Ticket {
     }
 
     await modalInteraction.deleteReply();
+
+    const { user_id } = await Database.get<{ user_id: string }>(
+      'SELECT `user_id` FROM `tickets` WHERE `id` = ?',
+      [ ticket.ticketId ],
+    ) ?? { user_id: modalInteraction.user.id };
+
+    if (user_id === modalInteraction.user.id) return;
+
+    const closureEmbed = new EmbedBuilder()
+      .setAuthor(modalInteraction.guild ? { name: modalInteraction.guild.name } : null)
+      .setTitle('Your ticket closed')
+      .setThumbnail(modalInteraction.guild?.iconURL({ size: 256, extension: 'webp' }) ?? null)
+      .setDescription(
+        closureReason
+          ? `Closure reason:\n> ${closureReason}`
+          : 'Ticket considered as resolved.'
+      );
+
+    try {
+      const user = await modalInteraction.guild?.members.fetch(user_id);
+
+      if (!user) throw new Error(`${user_id} was not found`);
+
+      await user.send({
+        embeds: [closureEmbed],
+      })
+    } catch (err) {
+      logger.error(`Unable to send closure notification to user: ${(err as Error).message}`);
+    }
   }
 
   ticketId: number;
