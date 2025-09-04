@@ -1,3 +1,6 @@
 import StaticMessage from "../classes/static_messages";
+import tickets from "./tickets";
 
-export default [] as StaticMessage[];
+export default [
+  tickets,
+] as StaticMessage[];
