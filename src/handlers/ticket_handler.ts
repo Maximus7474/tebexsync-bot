@@ -427,6 +427,11 @@ class Ticket {
 
   async addTicketParticipant(addedUser: User, userWhoAddedTheOtherUserNiceVariableName: User) {
     try {
+      await Database.insert(
+        'INSERT INTO `ticket_members` (`ticket`, `user_id`, `added_by`) VALUES (?, ?, ?)',
+        [ this.ticketId, addedUser.id, userWhoAddedTheOtherUserNiceVariableName.id ],
+      );
+
       this.channel.permissionOverwrites.create(addedUser, {
         ViewChannel: true,
       });
@@ -441,7 +446,7 @@ class Ticket {
           }) ?? undefined
         })
         .setTitle('New ticket participant')
-        .setDescription(`<@${addedUser.id}> was added to the ticket`)
+        .setDescription(`<@${addedUser.id}> was added to the ticket`);
 
       this.channel.send({
         embeds: [embed]
