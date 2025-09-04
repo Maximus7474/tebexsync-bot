@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `category` INTEGER NOT NULL,
     `ticket_name` TEXT NOT NULL,
+    `channel_id` TEXT NOT NULL,
 
     `user_id` TEXT NOT NULL,
     `user_username` TEXT NOT NULL,
