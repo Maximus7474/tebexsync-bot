@@ -29,8 +29,9 @@ export default (client: DiscordClient) => {
     client.on('interactionCreate', async (interaction) => {
       if (interaction.isButton() || interaction.isAnySelectMenu()) {
         const { customId } = interaction;
+
         const handler = callbackHandler.get(customId);
-        console.log(customId, callbackHandler.keys());
+
         if (handler) {
           await handler(client, interaction);
         }
