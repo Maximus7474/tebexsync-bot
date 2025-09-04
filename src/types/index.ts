@@ -5,3 +5,4 @@ export * from './static_messages';
 export * from './tebex_api';
 export * from './transaction_logging';
 export * from './database';
+export * from './tickets';

@@ -57,3 +57,72 @@ CREATE TABLE IF NOT EXISTS `customer_developers` (
     UNIQUE(customer_id, discord_id),
     FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)
 );
+
+/*
+    TICKETS
+ */
+
+CREATE TABLE IF NOT EXISTS `ticket_categories` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `name` TEXT NOT NULL UNIQUE,
+    `description` TEXT DEFAULT NULL,
+    `emoji` TEXT DEFAULT NULL, -- used for static message in dropdown menu
+    `category_id` TEXT NOT NULL UNIQUE, -- discord category channel id
+    `require_tbxid` INTEGER DEFAULT 1
+);
+
+-- Fields available in the modal for users to fill in
+-- Excluding the transactionid if specified in the parent table
+CREATE TABLE IF NOT EXISTS `ticket_category_fields` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `category` INTEGER NOT NULL,
+    `label` TEXT NOT NULL,
+    `placeholder` TEXT NOT NULL,
+    `required` INTEGER DEFAULT 1,
+    `short_field` INTEGER DEFAULT 1, -- https://discord.js.org/docs/packages/discord-api-types/main/v10/TextInputStyle:Enum
+    `min_length` INTEGER DEFAULT NULL,
+    `max_length` INTEGER DEFAULT NULL,
+
+    FOREIGN KEY (`category`) REFERENCES ticket_categories(`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `tickets` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `category` INTEGER NOT NULL,
+    `ticket_name` TEXT NOT NULL,
+    `channel_id` TEXT NOT NULL,
+
+    `user_id` TEXT NOT NULL,
+    `user_username` TEXT NOT NULL,
+    `user_display_name` TEXT NOT NULL,
+
+    `opened_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `closed_at` DATETIME DEFAULT NULL,
+
+    FOREIGN KEY (`category`) REFERENCES ticket_categories(`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `ticket_members` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `ticket` INTEGER NOT NULL,
+    `user_id` TEXT NOT NULL,
+    `removed` INTEGER DEFAULT 0,
+    `added_by` TEXT DEFAULT NULL,
+    `added_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(ticket, user_id),
+    FOREIGN KEY (`ticket`) REFERENCES tickets(`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `ticket_messages` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `ticket` INTEGER NOT NULL,
+    `author_id` TEXT NOT NULL,
+    `display_name` TEXT NOT NULL,
+    `avatar` TEXT NOT NULL,
+    `content` TEXT DEFAULT NULL,
+    `edited_at` DATETIME DEFAULT NULL,
+    `sent_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`ticket`) REFERENCES tickets(`id`)
+);

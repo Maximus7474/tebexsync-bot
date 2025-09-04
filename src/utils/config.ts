@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
 
-import Logger from './logger';
 import { DBConnectionDetails } from '../types';
-const logger = new Logger('CONFIG');
 
 dotenv.config();
 
@@ -26,7 +24,7 @@ const fields = {
 
 interface Config extends DBConnectionDetails {
   DISCORD_BOT_TOKEN: string;
-  MAIN_GUILD_ID: string | false;
+  MAIN_GUILD_ID: string;
   TEBEX_SECRET: string | false
 };
 
@@ -35,12 +33,12 @@ if (!fields.DISCORD_BOT_TOKEN) {
 }
 
 if (!fields.MAIN_GUILD_ID) {
-  logger.warn('No MAIN_GUILD detected, deployed commands will not be restricted to a guild !')
+  throw new Error('No MAIN_GUILD_ID detected, this is required !')
 }
 
 const env: Config = {
   DISCORD_BOT_TOKEN: fields.DISCORD_BOT_TOKEN,
-  MAIN_GUILD_ID: fields.MAIN_GUILD_ID ?? false,
+  MAIN_GUILD_ID: fields.MAIN_GUILD_ID,
   SQLITE_PATH: fields.SQLITE_PATH,
   SQL_HOST: fields.SQL_HOST,
   SQL_PORT: fields.SQL_PORT,
