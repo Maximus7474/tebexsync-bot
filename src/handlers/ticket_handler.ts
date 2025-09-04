@@ -415,7 +415,7 @@ class Ticket {
     }
 
     await Database.insert(
-      'INSERT INTO ticket_messages VALUES (ticket, author_id, display_name, avatar, content) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO ticket_messages (ticket, author_id, display_name, avatar, content) VALUES (?, ?, ?, ?, ?)',
       [
         this.ticketId,
         message.author.id,
