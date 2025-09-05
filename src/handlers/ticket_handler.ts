@@ -482,7 +482,7 @@ class Ticket {
         );
       }
 
-      this.channel.permissionOverwrites.create(addedUser, {
+      await this.channel.permissionOverwrites.create(addedUser, {
         ViewChannel: true,
       });
 
