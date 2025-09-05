@@ -509,6 +509,28 @@ class Ticket {
     }
   }
 
+  async removeTicketParticipant(userId: string, userDoingTheActionOfRemovingOtherUser: User) {
+    try {
+      await Database.execute(
+        'UPDATE `ticket_members` SET `removed` = 1 WHERE `ticket` = ? AND `user_id` = ?',
+        [
+          this.ticketId,
+          userId,
+        ],
+      );
+
+      await this.channel.permissionOverwrites.delete(
+        userId,
+        `Removed from ticket by ${userDoingTheActionOfRemovingOtherUser.username} (${userDoingTheActionOfRemovingOtherUser.id})`
+      );
+
+      return true;
+    } catch (err) {
+      logger.error(`Unable to remove ${userId} to ticket (${this.ticketId} - ${this.channel.id}):`, (err as Error).message);
+      return false;
+    }
+  }
+
   async closeTicket(user: User, reason: string | undefined) {
     logger.info(`Ticket ${this.ticketId} closed by ${user.username}, reason: ${reason ?? 'N/A'}`);
 
