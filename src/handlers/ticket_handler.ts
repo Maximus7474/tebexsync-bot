@@ -455,11 +455,32 @@ class Ticket {
   }
 
   async addTicketParticipant(addedUser: User, userWhoAddedTheOtherUserNiceVariableName: User) {
+    const { id: memberId } = await Database.get<{ id: number }>(
+      'SELECT `id` FROM `ticket_members` WHERE `ticket` = ? AND `user_id` = ?',
+      [ this.ticketId, addedUser.id ]
+    ) ?? { id: null };
+
     try {
-      await Database.insert(
-        'INSERT INTO `ticket_members` (`ticket`, `user_id`, `added_by`) VALUES (?, ?, ?)',
-        [ this.ticketId, addedUser.id, userWhoAddedTheOtherUserNiceVariableName.id ],
-      );
+      if (memberId) {
+        await Database.execute(
+          'UPDATE `ticket_members` SET `removed` = 0, `added_by` = ?, `added_at` = ? WHERE `ticket` = ? AND `user_id` = ?',
+          [
+            userWhoAddedTheOtherUserNiceVariableName.id,
+            FormatDateForDB(),
+            this.ticketId,
+            addedUser.id,
+          ],
+        );
+      } else {
+        await Database.insert(
+          'INSERT INTO `ticket_members` (`ticket`, `user_id`, `added_by`) VALUES (?, ?, ?)',
+          [
+            this.ticketId,
+            addedUser.id,
+            userWhoAddedTheOtherUserNiceVariableName.id,
+          ],
+        );
+      }
 
       this.channel.permissionOverwrites.create(addedUser, {
         ViewChannel: true,
