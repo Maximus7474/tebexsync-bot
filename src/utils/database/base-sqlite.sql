@@ -10,10 +10,10 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 /* Default settings */
 INSERT OR IGNORE INTO `settings` (`name`, `data_type`, `value`) VALUES
-    ('customer_role', 'string', '1354857644174872737'),
-    ('customers_dev_role', 'string', '1354857695316017334'),
-    ('payment_log_channel', 'string', '1209137239217537126'),
-    ('notifying_discord_id', 'string', '336592756698906626'),
+    ('customer_role', 'string', 'role_id'),
+    ('customers_dev_role', 'string', 'role_id'),
+    ('payment_log_channel', 'string', 'channel_id'),
+    ('notifying_discord_id', 'string', 'user_id'), -- Discord bot id
     ('max_developers', 'number', 2);
 
 /*
