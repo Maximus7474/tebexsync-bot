@@ -1,6 +1,26 @@
 import { EmbedBuilder, InteractionContextType, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import SettingsManager from "../../handlers/settings_handler";
+import SettingsManager, { SettingDataType, type SettingDataDisplayTypes } from "../../handlers/settings_handler";
+import { GetChannelIdFromMention, GetRoleIdFromMention } from "../../utils/utils";
+
+function displaySettingValue(value: string | number | object, type: SettingDataDisplayTypes) {
+  switch (type) {
+    case "object":
+      return (
+        '```json\n' +
+        JSON.stringify(value, null, 2) +
+        '\n```'
+      );
+    case "channel_id":
+      return `<#${value}>`;
+    case "role_id":
+      return `<@&${value}>`;
+    default:
+      return (
+        `\`\`\`json\n${value}\n\`\`\``
+      );
+  }
+}
 
 export default new SlashCommand({
   name: "settings",
@@ -53,13 +73,14 @@ export default new SlashCommand({
 
     if (subcommand === "get") {
       const key = interaction.options.getString("key", true);
-      const value = SettingsManager.get(key);
+      const value = SettingsManager.get<SettingDataType>(key);
+      const dataType = SettingsManager.getDataType(key);
 
-      if (value !== null) {
+      if (value !== null && dataType !== null) {
         const embed = new EmbedBuilder()
           .setColor(0x5865F2)
           .setTitle(`Setting: \`${key}\``)
-          .setDescription(`\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``)
+          .setDescription(displaySettingValue(value, dataType))
           .addFields(
             { name: "Type", value: `\`${typeof value}\``, inline: true }
           )
