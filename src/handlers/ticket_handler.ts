@@ -510,6 +510,13 @@ class Ticket {
   }
 
   async removeTicketParticipant(userId: string, userDoingTheActionOfRemovingOtherUser: User) {
+    const exists = await Database.get(
+      'SELECT 1 FROM `ticket_members` WHERE `ticket` = ? AND `user_id` = ?',
+      [ this.ticketId, userId ]
+    );
+
+    if (!exists) return false;
+
     try {
       await Database.execute(
         'UPDATE `ticket_members` SET `removed` = 1 WHERE `ticket` = ? AND `user_id` = ?',
