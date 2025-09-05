@@ -92,19 +92,21 @@ export default new SlashCommand({
       }
     } else if (subcommand === "set") {
       const key = interaction.options.getString("key", true);
-      const rawValue = interaction.options.getString("value", true);
+      const rawValue = interaction.options.getString("value", true).trim();
 
       const currentValue = SettingsManager.get(key);
-      const type = typeof currentValue;
+      const type = SettingsManager.getDataType(key);
 
-      if (!currentValue) {
+      if (!currentValue || !type) {
         await interaction.reply({ content: `The setting \`${key}\` is unknown.`, flags: MessageFlags.Ephemeral });
         return;
       }
 
-      let parsedValue: string | number | object = rawValue;
+      let parsedValue: NonNullable<SettingDataType> = rawValue;
+
       if (type === 'number') {
-        const numValue = parseInt(rawValue.trim());
+        const numValue = parseInt(rawValue);
+
         if (isNaN(numValue)) {
           await interaction.reply({
             content: `Invalid integer value provided for \`${key}\`. Please enter a valid number...`,
@@ -112,15 +114,53 @@ export default new SlashCommand({
           });
           return;
         }
+
         parsedValue = numValue;
       } else if (type === 'object') {
         try {
-          parsedValue = JSON.parse(rawValue.trim());
+          parsedValue = JSON.parse(rawValue);
         } catch (err) {
           await interaction.reply({
             content: `Invalid JSON object provided for \`${key}\`. Please ensure that this is valid JSON...\n> ${(err as Error).message}`,
             ephemeral: true
           });
+
+          return;
+        }
+      } else if (type === 'channel_id') {
+        try {
+          const channelId = GetChannelIdFromMention(rawValue);
+
+          if (!channelId) throw new Error('No channel mention was found')
+
+          const channel = await client.channels.fetch(channelId);
+
+          if (channel) parsedValue = channel.id;
+          else throw new Error('No channel was found');
+        } catch (err) {
+          await interaction.reply({
+            content: `The channel mention for \`${key}\` id invalid. Please mention a valid channel.\n> ${(err as Error).message}`,
+            ephemeral: true
+          });
+
+          return;
+        }
+      } else if (type === 'role_id') {
+        try {
+          const roleId = GetRoleIdFromMention(rawValue);
+
+          if (!roleId) throw new Error('No role mention was found');
+
+          const role = await interaction.guild!.roles.fetch(roleId);
+
+          if (role) parsedValue = role.id;
+          else throw new Error('No role was found');
+        } catch (err) {
+          await interaction.reply({
+            content: `The role mention for \`${key}\` is invalid. Please mention a valid channel.\n> ${(err as Error).message}`,
+            ephemeral: true
+          });
+
           return;
         }
       }
@@ -130,9 +170,10 @@ export default new SlashCommand({
       const embed = new EmbedBuilder()
         .setColor(0x57F287)
         .setTitle("Setting upated!")
-        .setDescription(`The value of the setting \`${key}\` was updated successfully, new value:\n\`\`\`json\n${JSON.stringify(parsedValue, null, 2)}\n\`\`\``)
+        .setDescription(`The value of the setting \`${key}\` was updated successfully`)
         .addFields(
-          { name: "Type", value: `\`${typeof parsedValue}\``, inline: true }
+          { name: "Value", value: displaySettingValue(parsedValue, type), inline: true },
+          { name: "Type", value: `\`${type}\``, inline: true },
         )
         .setTimestamp();
       await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
