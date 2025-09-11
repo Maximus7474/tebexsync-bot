@@ -4,7 +4,6 @@ import { TebexAPIError, TebexPayment, TebexPurchasePayload, RawTebexPurchasePayl
 import { GetUtcTimestamp } from '../../utils/utils';
 
 import verify_purchase from './verify_purchase';
-import get_internal_customerid from './get_internal_customerid';
 
 class TebexApi {
   private static instance: TebexApi;
@@ -56,10 +55,6 @@ class TebexApi {
     }
 
     return processedData;
-  }
-
-  async getCustomerInternalId(discordId: string): Promise<number> {
-    return await get_internal_customerid(discordId);
   }
 }
 
