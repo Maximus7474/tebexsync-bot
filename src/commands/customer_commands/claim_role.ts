@@ -3,6 +3,7 @@ import SlashCommand from "../../classes/slash_command";
 import Database from "../../utils/database";
 import tebexHandler from "../../handlers/tebex_handler";
 import SettingsManager from "../../handlers/settings_handler";
+import PurchaseManager from "../../handlers/purchase_handler";
 
 export default new SlashCommand({
   name: 'claim-role',
@@ -58,7 +59,7 @@ export default new SlashCommand({
           return;
         }
 
-        const customerId = await tebexHandler.getCustomerInternalId(user.id);
+        const customerId = await PurchaseManager.getCustomerId(user.id);
 
         const id = await Database.insert(
           "INSERT INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`, `refund`, `chargeback`) VALUES (?, ?, ?, ?, ?, ?)",

@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
 import Database from "../../utils/database";
-import tebex_handler from "../../handlers/tebex_handler";
 import settings_handler from "../../handlers/settings_handler";
+import PurchaseManager from "../../handlers/purchase_handler";
 
 export default new SlashCommand({
   name: 'transfer-purchase',
@@ -66,7 +66,7 @@ export default new SlashCommand({
       return;
     }
 
-    const newCustomerId = await tebex_handler.getCustomerInternalId(newOwner.id);
+    const newCustomerId = await PurchaseManager.getCustomerId(newOwner.id);
 
     await Database.execute(
       'UPDATE `transactions` SET `customer_id` = ? WHERE `tbxid` = ?',
