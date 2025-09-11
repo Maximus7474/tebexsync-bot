@@ -4,6 +4,7 @@ import EventHandler from "../../classes/event_handler";
 import Database from "../../utils/database";
 import SettingsManager from "../../handlers/settings_handler";
 import tebexHandler from "../../handlers/tebex_handler";
+import PurchaseManager from "../../handlers/purchase_handler";
 
 // const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
 
@@ -93,7 +94,7 @@ export default new EventHandler({
     } else if (purchaseData.action === 'purchase') {
 
       const id: number | null = purchaseData.discordId
-        ? await tebexHandler.getCustomerInternalId(purchaseData.discordId)
+        ? await PurchaseManager.getCustomerId(purchaseData.discordId)
         : null;
 
       await Database.insert(
