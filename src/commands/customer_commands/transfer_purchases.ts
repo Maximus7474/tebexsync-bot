@@ -35,7 +35,7 @@ export default new SlashCommand({
     const tbxid = options.getString('purchase', true);
     const newOwner = options.getUser('member', true);
 
-    const { id: customerId } = await Database.get<{ id: number }>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ user.id ]) ?? { id: null };
+    const customerId = await PurchaseManager.getCustomerId(user.id, true);
 
     if (!customerId) {
       interaction.reply({
@@ -73,24 +73,11 @@ export default new SlashCommand({
       [ newCustomerId, tbxid ],
     );
 
-    const { purchases } = await Database.get<{ purchases: number }>(
-      'SELECT COUNT(`id`) AS purchases FROM `transactions` WHERE `refund` = 0 AND `chargeback` = 0 AND `customer_id` = ?',
-      [ customerId ],
-    ) ?? { purchases: 0 };
+    await PurchaseManager.checkCustomerPurchases(customerId);
 
     const customerRole = settings_handler.get('customer_role') as string;
 
     const role = await guild.roles.fetch(customerRole);
-
-    if (purchases < 1) {
-      const member = await guild.members.fetch(user.id);
-      if (role) {
-        await member.roles.remove(role, 'Purchase transferred');
-        logger.success(`Removed customer role from ${user.username} (${user.id}) has he has no active purchases anymore.`);
-      } else {
-        logger.error('Unable to find customer role to remove from previous customer !');
-      }
-    }
 
     const newCustomer = await guild.members.fetch(newOwner.id);
     if (newCustomer) {
