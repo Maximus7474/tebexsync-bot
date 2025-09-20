@@ -21,9 +21,9 @@ export default new SlashCommand({
       return;
     }
 
-    const customerId = await PurchaseManager.getCustomerId(user.id);
+    const customerId = await PurchaseManager.getCustomerId(user.id, true);
 
-    const hasPurchases = await PurchaseManager.checkCustomerPurchases(customerId);
+    const hasPurchases = customerId ? await PurchaseManager.checkCustomerPurchases(customerId) : false;
 
     if (!hasPurchases) {
       interaction.reply({
