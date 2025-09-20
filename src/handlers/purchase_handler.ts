@@ -29,10 +29,21 @@ class PurchaseManager {
     });
   }
 
-  public static async getCustomerId(discordId: string) {
-    const customer = await Database.get<{id: number}>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ discordId ]);
+  /**
+   * Get or create an internal customer id for a discord user id
+   *
+   * @param discordId user's discord id
+   * @param skipCreate should skip id creation (default: false)
+   * @returns
+   */
+  public static async getCustomerId(discordId: string, skipCreate: true): Promise<null | number>;
+  public static async getCustomerId(discordId: string): Promise<number>;
+  public static async getCustomerId(discordId: string, skipCreate: boolean = false): Promise<null | number> {
+    const customer = await Database.get<{ id: number }>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ discordId ]);
 
     if (customer) return customer.id;
+
+    if (!skipCreate) return null;
 
     const id = await Database.insert(
       "INSERT INTO `customers` (`discord_id`) VALUES (?)",
