@@ -1,4 +1,4 @@
-import { DatabaseTicket, DiscordClient, TicketCategory, TicketCategoryData, TicketCategoryField } from "@types";
+import { DiscordClient, TicketCategory, TicketCategoryData } from "@types";
 import {
   ActionRowBuilder,
   APIEmbedField,
@@ -26,6 +26,7 @@ import Tebex from "./tebex_handler";
 import Logger from "../utils/logger";
 import env from "../utils/config";
 import { FormatDateForDB } from "../utils/utils";
+import { prisma } from "../utils/prisma";
 
 const logger = new Logger('ticket-handler');
 
@@ -34,13 +35,17 @@ class Ticket {
 
   static async reloadTickets(client: DiscordClient) {
     const applicationUser = client.user!;
-    const tickets = await Database.all<DatabaseTicket>('SELECT * FROM `tickets` WHERE `closed_at` IS NULL');
+    const tickets = await prisma.tickets.findMany({
+      where: {
+        closedAt: null,
+      }
+    });
 
     for (let idx = 0; idx < tickets.length; idx++) {
       const ticketData = tickets[idx];
 
       try {
-        const channel = await client.channels.fetch(ticketData.channel_id) as TextChannel | null;
+        const channel = await client.channels.fetch(ticketData.channelId) as TextChannel | null;
 
         if (!channel) throw new Error('No channel was found.')
 
@@ -50,21 +55,27 @@ class Ticket {
         logger.warn(`Ticket ${ticketData.id} was closed manually (${(err as Error).message}), closing in database.`);
 
         const date = FormatDateForDB();
-        await Database.execute('UPDATE `tickets` SET `closed_at` = ? WHERE `id` = ?', [ date, ticketData.id ])
+        await prisma.tickets.update({
+          where: {
+            id: ticketData.id,
+          },
+          data: {
+            closedAt: date,
+          }
+        });
 
         const closureEmbed = new EmbedBuilder()
           .setTitle('Ticket closed');
 
-        await Database.insert(
-          'INSERT INTO ticket_messages (ticket, author_id, display_name, avatar, content) VALUES (?, ?, ?, ?, ?)',
-          [
-            ticketData.id,
-            applicationUser.id,
-            applicationUser.displayName,
-            applicationUser.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }),
-            `<EMBED:${JSON.stringify(closureEmbed.toJSON())}>`,
-          ]
-        );
+        await prisma.ticketMessages.create({
+          data: {
+            ticket: ticketData.id,
+            authorId: applicationUser.id,
+            displayName: applicationUser.displayName,
+            avatar: applicationUser.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }),
+            content: `<EMBED:${JSON.stringify(closureEmbed.toJSON())}>`,
+          }
+        });
       }
     }
 
@@ -76,53 +87,21 @@ class Ticket {
   }
 
   static async getCategoryData({ id, name }: { id?: number | null; name?: string | null }): Promise<TicketCategoryData | null> {
-    const whereStatement = id !== null
-      ? 'WHERE id = ?'
-      : name !== null
-        ? 'WHERE name = ?'
-        : null;
+    if (id === null && name === null) {
+      throw new Error('No id or name was specified!');
+    }
 
-    const queryParams = id !== null
-      ? [ id ]
-      : name !== null
-        ? [ name ]
-        : null;
+    const categoryData = await prisma.ticketCategories.findUnique({
+      where: {
+        id: id ?? undefined,
+        name: name ?? undefined,
+      },
+      include: {
+        fields: true,
+      },
+    });
 
-    if (!whereStatement || !queryParams) throw new Error('No id or name was specified !');
-
-    const categoryData = await Database.get<TicketCategory>(
-      `SELECT
-        id,
-        name,
-        description,
-        emoji,
-        category_id,
-        require_tbxid
-      FROM ticket_categories
-      ${whereStatement}`,
-      queryParams
-    );
-
-    if (!categoryData) return null;
-
-    const categoryFields = await Database.all<TicketCategoryField>(
-      `SELECT
-        id,
-        label,
-        placeholder,
-        required,
-        short_field,
-        min_length,
-        max_length
-      FROM ticket_category_fields
-      WHERE category = ?`,
-      [ categoryData.id ]
-    );
-
-    return {
-      ...categoryData,
-      fields: categoryFields,
-    };
+    return categoryData as TicketCategoryData | null;
   }
 
   static async createNewTicket(
@@ -294,16 +273,22 @@ class Ticket {
         .setEmoji('🔒')
     ) as ActionRowBuilder<ButtonBuilder>;
 
-    const ticketId = await Database.insert(
-      'INSERT INTO `tickets` (category, ticket_name, channel_id, user_id, user_username, user_display_name) VALUES (?, ?, ?, ?, ?, ?)',
-      [ categoryData.id, channel.name, channel.id, user.id, user.username, user.displayName ]
-    );
+    const dbTicket = await prisma.tickets.create({
+      data: {
+        category: categoryData.id,
+        ticketName: channel.name,
+        channelId: channel.id,
+        userId: user.id,
+        userUsername: user.username,
+        userDisplayName: user.displayName,
+      }
+    });
 
-    if (!ticketId) throw new Error('Unable to insert ticket data into database ! (unknown error)');
+    if (!dbTicket) throw new Error('Unable to insert ticket data into database ! (unknown error)');
 
     const ticket = new Ticket(
       channel,
-      ticketId,
+      dbTicket.id,
     );
 
     this.ActiveTickets.set(ticket.channel.id, ticket);
@@ -390,12 +375,16 @@ class Ticket {
 
     await modalInteraction.deleteReply();
 
-    const { user_id } = await Database.get<{ user_id: string }>(
-      'SELECT `user_id` FROM `tickets` WHERE `id` = ?',
-      [ ticket.ticketId ],
-    ) ?? { user_id: modalInteraction.user.id };
+    const dbUser = await prisma.tickets.findUnique({
+      select: {
+        userId: true,
+      },
+      where: {
+        id: ticket.ticketId,
+      }
+    });
 
-    if (user_id === modalInteraction.user.id) return;
+    if (!dbUser || dbUser.userId === modalInteraction.user.id) return;
 
     const closureEmbed = new EmbedBuilder()
       .setAuthor(modalInteraction.guild ? { name: modalInteraction.guild.name } : null)
@@ -408,9 +397,9 @@ class Ticket {
       );
 
     try {
-      const user = await modalInteraction.guild?.members.fetch(user_id);
+      const user = await modalInteraction.guild?.members.fetch(dbUser.userId);
 
-      if (!user) throw new Error(`${user_id} was not found`);
+      if (!user) throw new Error(`${dbUser.userId} was not found`);
 
       await user.send({
         embeds: [closureEmbed],
@@ -442,45 +431,39 @@ class Ticket {
       content += `${content.length > 0 ? '\n\n' : ''}${embeds.join('\n')}`;
     }
 
-    await Database.insert(
-      'INSERT INTO ticket_messages (ticket, author_id, display_name, avatar, content) VALUES (?, ?, ?, ?, ?)',
-      [
-        this.ticketId,
-        message.author.id,
-        message.author.displayName,
-        message.author.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }),
-        content,
-      ]
-    );
+    const { author } = message;
+
+    await prisma.ticketMessages.create({
+      data: {
+        ticket: this.ticketId,
+        authorId: author.id,
+        displayName: author.displayName,
+        avatar: author.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }),
+        content: content,
+      }
+    });
   }
 
   async addTicketParticipant(addedUser: User, userWhoAddedTheOtherUserNiceVariableName: User) {
-    const { id: memberId } = await Database.get<{ id: number }>(
-      'SELECT `id` FROM `ticket_members` WHERE `ticket` = ? AND `user_id` = ?',
-      [ this.ticketId, addedUser.id ]
-    ) ?? { id: null };
-
     try {
-      if (memberId) {
-        await Database.execute(
-          'UPDATE `ticket_members` SET `removed` = 0, `added_by` = ?, `added_at` = ? WHERE `ticket` = ? AND `user_id` = ?',
-          [
-            userWhoAddedTheOtherUserNiceVariableName.id,
-            FormatDateForDB(),
-            this.ticketId,
-            addedUser.id,
-          ],
-        );
-      } else {
-        await Database.insert(
-          'INSERT INTO `ticket_members` (`ticket`, `user_id`, `added_by`) VALUES (?, ?, ?)',
-          [
-            this.ticketId,
-            addedUser.id,
-            userWhoAddedTheOtherUserNiceVariableName.id,
-          ],
-        );
-      }
+      await prisma.ticketMembers.upsert({
+        where: {
+          ticket_userId: {
+            ticket: this.ticketId,
+            userId: addedUser.id,
+          },
+        },
+        update: {
+          removed: 0,
+          addedBy: userWhoAddedTheOtherUserNiceVariableName.id,
+          addedAt: new Date(),
+        },
+        create: {
+          ticket: this.ticketId,
+          userId: addedUser.id,
+          addedBy: userWhoAddedTheOtherUserNiceVariableName.id,
+        },
+      });
 
       await this.channel.permissionOverwrites.create(addedUser, {
         ViewChannel: true,
@@ -510,21 +493,18 @@ class Ticket {
   }
 
   async removeTicketParticipant(userId: string, userDoingTheActionOfRemovingOtherUser: User) {
-    const exists = await Database.get(
-      'SELECT 1 FROM `ticket_members` WHERE `ticket` = ? AND `user_id` = ?',
-      [ this.ticketId, userId ]
-    );
-
-    if (!exists) return false;
-
     try {
-      await Database.execute(
-        'UPDATE `ticket_members` SET `removed` = 1 WHERE `ticket` = ? AND `user_id` = ?',
-        [
-          this.ticketId,
-          userId,
-        ],
-      );
+      await prisma.ticketMembers.update({
+        where: {
+          ticket_userId: {
+            ticket: this.ticketId,
+            userId: userId,
+          },
+        },
+        data: {
+          removed: 1,
+        },
+      });
 
       await this.channel.permissionOverwrites.delete(
         userId,
@@ -533,7 +513,7 @@ class Ticket {
 
       return true;
     } catch (err) {
-      logger.error(`Unable to remove ${userId} to ticket (${this.ticketId} - ${this.channel.id}):`, (err as Error).message);
+      logger.error(`Unable to remove ${userId} from ticket (${this.ticketId} - ${this.channel.id}):`, (err as Error).message);
       return false;
     }
   }
@@ -541,35 +521,44 @@ class Ticket {
   async closeTicket(user: User, reason: string | undefined) {
     logger.info(`Ticket ${this.ticketId} closed by ${user.username}, reason: ${reason ?? 'N/A'}`);
 
-    const date = FormatDateForDB();
-    await Database.execute('UPDATE `tickets` SET `closed_at` = ? WHERE `id` = ?', [ date, this.ticketId ]);
+    try {
+      await prisma.tickets.update({
+        where: {
+          id: this.ticketId,
+        },
+        data: {
+          closedAt: new Date(),
+        },
+      });
 
-    const closureEmbed = new EmbedBuilder()
-      .setTitle('Ticket closed')
-      .setDescription(
-        reason
-          ? `Closure reason:\n> ${reason}`
-          : 'No reason provided.'
-      );
+      const closureEmbed = new EmbedBuilder()
+        .setTitle('Ticket closed')
+        .setDescription(
+          reason
+            ? `Closure reason:\n> ${reason}`
+            : 'No reason provided.'
+        );
 
-    await Database.insert(
-      'INSERT INTO ticket_messages (ticket, author_id, display_name, avatar, content) VALUES (?, ?, ?, ?, ?)',
-      [
-        this.ticketId,
-        user.id,
-        user.displayName,
-        user.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }),
-        `<EMBED:${JSON.stringify(closureEmbed.toJSON())}>`,
-      ]
-    );
+      await prisma.ticketMessages.create({
+        data: {
+          ticket: this.ticketId,
+          authorId: user.id,
+          displayName: user.displayName,
+          avatar: user.avatarURL({ forceStatic: true, extension: 'webp', size: 128 }) ?? '',
+          content: `<EMBED:${JSON.stringify(closureEmbed.toJSON())}>`,
+        },
+      });
 
-    setTimeout(() => {
-      this.channel.delete(`Ticket closed by ${user.username}${reason ? `: ${reason}` : ''}`)
-      .catch(err => logger.error(`An error occured (${(err as Error).message}) when deleting the ticket ${this.ticketId} channel ${this.channel.id}`));
-    }, 500);
+      setTimeout(() => {
+        this.channel.delete(`Ticket closed by ${user.username}${reason ? `: ${reason}` : ''}`)
+          .catch((err: Error) => logger.error(`An error occurred (${err.message}) when deleting the ticket ${this.ticketId} channel ${this.channel.id}`));
+      }, 500);
 
-
-    return true;
+      return true;
+    } catch (err) {
+      logger.error(`Unable to close ticket ${this.ticketId}:`, (err as Error).message);
+      return false;
+    }
   }
 }
 
