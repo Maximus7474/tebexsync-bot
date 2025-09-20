@@ -11,8 +11,7 @@
     "build": "node scripts/build.js",
     "deploy": "node scripts/register_commands.js",
     "dev-deploy": "npm run build && npm run deploy",
-    "start": "node dist/index.js",
-    "setup-db": "node scripts/setup_database.js"
+    "start": "node dist/index.js"
   },
   "keywords": [
     "discordbot",
@@ -31,7 +30,6 @@
     "@eslint/js": "^9.28.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.29",
-    "better-sqlite3": "^11.10.0",
     "eslint": "^9.28.0",
     "nodemon": "^3.1.10",
     "tsx": "^4.19.4",
