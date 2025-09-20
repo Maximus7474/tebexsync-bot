@@ -2,6 +2,7 @@ import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
 import Database from "../../utils/database";
 import settings_handler from "../../handlers/settings_handler";
+import PurchaseManager from "../../handlers/purchase_handler";
 
 export default new SlashCommand({
   name: 'view-developers',
@@ -20,22 +21,21 @@ export default new SlashCommand({
       return;
     }
 
-    const purchase = await Database.get<{ tbxid: string }>(
-      'SELECT `tbxid` FROM `transactions` WHERE `discord_id` = ? AND `refund` = 0 AND `chargeback` = 0',
-      [ user.id ]
-    );
+    const customerId = await PurchaseManager.getCustomerId(user.id);
 
-    if (!purchase) {
+    const hasPurchases = await PurchaseManager.checkCustomerPurchases(customerId);
+
+    if (!hasPurchases) {
       interaction.reply({
-        content: 'No linked purchases',
+        content: 'No linked or active purchases',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
     const currentDevs = await Database.all<{discord_id: string}>(
-      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `tbxid` = ?',
-      [purchase.tbxid]
+      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `customer_id` = ?',
+      [ customerId ]
     );
 
     if (currentDevs.length === 0) {
