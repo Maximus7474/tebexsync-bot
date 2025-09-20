@@ -43,7 +43,7 @@ class PurchaseManager {
 
     if (customer) return customer.id;
 
-    if (!skipCreate) return null;
+    if (skipCreate) return null;
 
     const id = await Database.insert(
       "INSERT INTO `customers` (`discord_id`) VALUES (?)",
