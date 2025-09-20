@@ -129,7 +129,7 @@ model TicketMessages {
   ticket      Int
   authorId    String    @map("author_id")
   displayName String    @map("display_name")
-  avatar      String
+  avatar      String?
   content     String?
   editedAt    DateTime? @map("edited_at")
   sentAt      DateTime  @default(now()) @map("sent_at")
