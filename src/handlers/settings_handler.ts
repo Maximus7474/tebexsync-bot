@@ -1,49 +1,43 @@
-import DB from "../utils/database";
 import Logger from "../utils/logger";
 
+import { prisma } from "../utils/prisma";
 const logger = new Logger('Settings Manager');
 
 export type SettingDataDisplayTypes = 'number' | 'string' | 'object' | 'channel_id' | 'role_id';
 export type SettingDataType = number | string | object | null;
 
 class SettingsManager {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private settings: Map<string, { type: SettingDataDisplayTypes; value: any }> = new Map();
+  private settings = new Map<string, { type: SettingDataDisplayTypes; value: SettingDataType }>();
 
-  constructor() {
-    DB.all<{
-      name: string;
-      data_type: SettingDataDisplayTypes,
-      value: string;
-    }>('SELECT * FROM `settings`')
-      .then((rawSettings) => {
-        for (const { name, data_type, value } of rawSettings) {
-          let parsedData: SettingDataType = null;
+  async initialize() {
+    try {
+      const rawSettings = await prisma.settings.findMany();
+      for (const { name, dataType, value } of rawSettings) {
+        let parsedData: SettingDataType = null;
 
-          if (data_type === 'number') {
-            parsedData = parseInt(value);
-          } else if (data_type === 'object') {
-            parsedData = JSON.parse(value);
-          } else if (data_type === 'string' || data_type === 'role_id' || data_type === 'channel_id') {
-            parsedData = value;
-          } else {
-            logger.error('Invalid "data_type" found in settings table !');
-            logger.error('Setting:', name, data_type, value);
-          }
-
-          if (parsedData) {
-            this.settings.set(name, {
-              type: data_type,
-              value: parsedData,
-            });
-          }
+        if (dataType === 'number') {
+          parsedData = parseInt(value, 10);
+        } else if (dataType === 'object') {
+          parsedData = JSON.parse(value);
+        } else if (dataType === 'string' || dataType === 'role_id' || dataType === 'channel_id') {
+          parsedData = value;
+        } else {
+          logger.error('Invalid "dataType" found in settings table!');
+          logger.error('Setting:', name, dataType, value);
         }
 
-        logger.success(`Loaded ${this.settings.size}/${rawSettings.length} settings from database.`);
-      })
-      .catch(err => {
-        logger.error('Unable to load settings from database:', err.message)
-      });
+        if (parsedData !== null) {
+          this.settings.set(name, {
+            type: dataType as SettingDataDisplayTypes,
+            value: parsedData,
+          });
+        }
+      }
+
+      logger.success(`Loaded ${this.settings.size}/${rawSettings.length} settings from database.`);
+    } catch (err) {
+      logger.error('Unable to load settings from database:', (err as Error).message);
+    }
   }
 
   get_keys(): string[] {
@@ -51,32 +45,46 @@ class SettingsManager {
   }
 
   get<T>(key: string): T | null {
-    return this.settings.get(key)?.value as T ?? null;
+    const setting = this.settings.get(key);
+    return (setting?.value ?? null) as T;
   }
 
   getDataType(key: string): SettingDataDisplayTypes | null {
     return this.settings.get(key)?.type ?? null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  set(key: string, value: any) {
+  async set(key: string, value: SettingDataType) {
     if (!this.settings.has(key)) {
-      logger.error(`Tried to set an inexistant setting: ${key}`);
+      logger.error(`Tried to set a non-existent setting: ${key}`);
       return;
     }
 
-    DB.execute(
-      'UPDATE `settings` SET `value` = ? WHERE `name` = ?',
-      [value, key]
-    );
+    try {
+      const dataType = this.settings.get(key)?.type;
+      let stringifiedValue = value as string;
 
-    const data_type = this.settings.get(key)!.type;
+      if (dataType === 'object') {
+        stringifiedValue = JSON.stringify(value);
+      } else if (dataType === 'number') {
+        stringifiedValue = String(value);
+      }
 
-    this.settings.set(key, {
-      type: data_type,
-      value: value,
-    });
+      await prisma.settings.update({
+        where: { name: key },
+        data: { value: stringifiedValue },
+      });
+
+      this.settings.set(key, {
+        type: dataType!,
+        value: value,
+      });
+    } catch (err) {
+      logger.error('Unable to update setting:', (err as Error).message);
+    }
   }
 }
 
-export default new SettingsManager();
+const settingsManager = new SettingsManager();
+settingsManager.initialize();
+
+export default settingsManager;
