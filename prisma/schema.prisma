@@ -52,6 +52,7 @@ model TransactionPackages {
   package   String
   transaction Transactions  @relation(fields: [tbxId], references: [tbxId])
 
+  @@unique([tbxId, package])
   @@map("transaction_packages")
 }
 
