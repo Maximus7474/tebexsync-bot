@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import Database from "../../utils/database";
 import settings_handler from "../../handlers/settings_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
+import { prisma } from "../../utils/prisma";
 
 export default new SlashCommand({
   name: 'view-developers',
@@ -25,7 +25,7 @@ export default new SlashCommand({
 
     const hasPurchases = customerId ? await PurchaseManager.checkCustomerPurchases(customerId) : false;
 
-    if (!hasPurchases) {
+    if (!hasPurchases || !customerId) {
       interaction.reply({
         content: 'No linked or active purchases',
         flags: MessageFlags.Ephemeral,
@@ -33,10 +33,11 @@ export default new SlashCommand({
       return;
     }
 
-    const currentDevs = await Database.all<{discord_id: string}>(
-      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `customer_id` = ?',
-      [ customerId ]
-    );
+    const currentDevs = await prisma.customerDevelopers.findMany({
+      where: {
+        customerId,
+      }
+    });
 
     if (currentDevs.length === 0) {
       interaction.reply({
@@ -48,7 +49,7 @@ export default new SlashCommand({
 
     interaction.reply({
       content: `Current developers linked (${currentDevs.length}/${settings_handler.get('max_developers')}):\n` + currentDevs
-        .map(({ discord_id }) => `* <@${discord_id}>`)
+        .map(({ discordId }, idx) => `${idx + 1}. <@${discordId}>`)
         .join('\n'),
       flags: MessageFlags.Ephemeral,
     });
