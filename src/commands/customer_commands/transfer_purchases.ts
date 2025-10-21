@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import Database from "../../utils/database";
 import settings_handler from "../../handlers/settings_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
+import { prisma } from "../../utils/prisma";
 
 export default new SlashCommand({
   name: 'transfer-purchase',
@@ -45,10 +45,17 @@ export default new SlashCommand({
       return;
     }
 
-    const purchase = await Database.get<{id: number; refund: 0 | 1, chargeback: 0 | 1}>(
-      'SELECT `id`, `chargeback`, `refund` FROM `transactions` WHERE `tbxid` = ? AND `customer_id` = ?',
-      [ tbxid, customerId ]
-    );
+    const purchase = await prisma.transactions.findUnique({
+      select: {
+        id: true,
+        chargeback: true,
+        refund: true,
+      },
+      where: {
+        tbxId: tbxid,
+        customerId: customerId,
+      },
+    });
 
     if (!purchase) {
       interaction.reply({
@@ -68,10 +75,14 @@ export default new SlashCommand({
 
     const newCustomerId = await PurchaseManager.getCustomerId(newOwner.id);
 
-    await Database.execute(
-      'UPDATE `transactions` SET `customer_id` = ? WHERE `tbxid` = ?',
-      [ newCustomerId, tbxid ],
-    );
+    await prisma.transactions.update({
+      where: {
+        tbxId: tbxid,
+      },
+      data: {
+        customerId: newCustomerId,
+      },
+    });
 
     await PurchaseManager.checkCustomerPurchases(customerId);
 
@@ -97,28 +108,34 @@ export default new SlashCommand({
   autocomplete: async (logger, client, interaction) => {
     const focusedOption = interaction.options.getFocused(true);
 
-    const transactions = await Database.all<{tbxid: string; packages: string[]}>(
-      `SELECT
-        T.tbxid AS tbxid,
-        GROUP_CONCAT(TP.package, ' - ') AS packages
-      FROM customers AS C
-      JOIN transactions AS T
-        ON C.id = T.customer_id
-      JOIN transaction_packages AS TP
-        ON T.tbxid = TP.tbxid
-      WHERE
-        C.discord_id = ?
-        AND (
-              T.tbxid LIKE ?
-          OR  TP.package LIKE ?
-        )
-      GROUP BY
-        T.id;`,
-      [ interaction.user.id, `%${focusedOption.value}%`, `%${focusedOption.value}%` ],
-    );
+    const transactions = await prisma.transactions.findMany({
+      select: {
+        transactionPackages: {
+          select: {
+            package: true,
+          }
+        },
+        tbxId: true,
+      },
+      where: {
+        customer: {
+          discordId: interaction.user.id,
+        },
+        OR: [
+          { tbxId: { contains: focusedOption.value } },
+          {
+            transactionPackages: {
+              some: {
+                package: { contains: focusedOption.value },
+              },
+            },
+          },
+        ],
+      },
+    });
 
     await interaction.respond(
-      transactions.map(({ tbxid, packages }) => ({ name: `${tbxid}: ${packages}`, value: tbxid }))
+      transactions.map(({ tbxId, transactionPackages }) => ({ name: `${tbxId}: ${transactionPackages.map(e => e.package).join(', ')}`, value: tbxId }))
     );
   },
 });
