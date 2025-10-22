@@ -49,6 +49,15 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
    - `DISCORD_BOT_TOKEN`: Your bot's authentication token from Discord's developer portal.
    - `MAIN_GUILD_ID`: The Discord ID of your main guild.
 
+3. Run the setup script:
+   ```bash
+   # if using npm
+   npm run setup
+   # if using pnpm
+   pnpm run setup
+   ```
+   This will install all packages, setup prisma and create the database.
+
 ---
 
 ## 🚀 Deploying
