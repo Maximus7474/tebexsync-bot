@@ -12,7 +12,8 @@
     "deploy": "node scripts/register_commands.js",
     "dev-deploy": "npm run build && npm run deploy",
     "start": "node dist/index.js",
-    "setup-db": "node scripts/setup_database.js"
+    "prisma": "prisma",
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [
     "discordbot",
@@ -22,6 +23,7 @@
   "author": "Maximus7474",
   "license": "MIT",
   "dependencies": {
+    "@prisma/client": "6.15.0",
     "axios": "^1.10.0",
     "colors": "^1.4.0",
     "discord.js": "^14.19.3",
@@ -31,9 +33,9 @@
     "@eslint/js": "^9.28.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.29",
-    "better-sqlite3": "^11.10.0",
     "eslint": "^9.28.0",
     "nodemon": "^3.1.10",
+    "prisma": "^6.15.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.1"

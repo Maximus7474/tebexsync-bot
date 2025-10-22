@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import Database from "../../utils/database";
 import settings_handler from "../../handlers/settings_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
+import { prisma } from "../../utils/prisma";
 
 export default new SlashCommand({
   name: 'add-developer',
@@ -30,7 +30,7 @@ export default new SlashCommand({
 
     const hasPurchases = customerId ? await PurchaseManager.checkCustomerPurchases(customerId) : false;
 
-    if (!hasPurchases) {
+    if (!hasPurchases || !customerId) {
       interaction.reply({
         content: 'No linked or active purchases',
         flags: MessageFlags.Ephemeral,
@@ -38,10 +38,14 @@ export default new SlashCommand({
       return;
     }
 
-    const currentDevs = await Database.all<{discord_id: string}>(
-      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `customer_id` = ?',
-      [customerId]
-    );
+    const currentDevs = await prisma.customerDevelopers.findMany({
+      where: {
+        customerId: customerId,
+      },
+      select: {
+        discordId: true,
+      },
+    });
 
     if (currentDevs.length >= (settings_handler.get('max_developers') as number)) {
       interaction.reply({
@@ -65,7 +69,7 @@ export default new SlashCommand({
     const devRoleId = settings_handler.get('customers_dev_role') as string;
     const role = await guild.roles.fetch(devRoleId);
 
-    const alreadyListed = currentDevs.find(({ discord_id }) => discord_id === developer.id)
+    const alreadyListed = currentDevs.find(({ discordId }) => discordId === developer.id)
     if (alreadyListed && developer.roles.cache.has(devRoleId)) {
       interaction.reply({
         content: `<@${developer.id}> is already added as your developer`,
@@ -94,6 +98,14 @@ export default new SlashCommand({
       });
       return;
     }
+
+    await prisma.customerDevelopers.create({
+      data: {
+        customerId: customerId,
+        discordId: developerId.id,
+        addedBy: interaction.user.username,
+      },
+    });
 
     interaction.reply({
       content: `Customer's developer role was granted to: <@${developer.id}>`,

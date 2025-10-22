@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Settings {
+  name      String  @id
+  dataType  String  @map("data_type")
+  value     String
+
+  @@map("settings")
+}
+
+model Customers {
+  id                  Int                 @id @default(autoincrement())
+  discordId           String              @unique @map("discord_id")
+  addedAt             DateTime            @default(now()) @map("added_at")
+  transactions        Transactions[]
+  customerDevelopers  CustomerDevelopers[]
+
+  @@map("customers")
+}
+
+model Transactions {
+  id                Int         @id @default(autoincrement())
+  tbxId             String      @unique @map("tbxid")
+  customerId        Int?        @map("customer_id")
+  chargeback        Int         @default(0)
+  refund            Int         @default(0)
+  purchaserName     String      @map("purchaser_name")
+  purchaserUuid     String      @map("purchaser_uuid")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  customer          Customers?  @relation(fields: [customerId], references: [id])
+  transactionPackages TransactionPackages[]
+
+  @@map("transactions")
+}
+
+model TransactionPackages {
+  id        Int           @id @default(autoincrement())
+  tbxId     String        @map("tbxid")
+  package   String
+  transaction Transactions  @relation(fields: [tbxId], references: [tbxId])
+
+  @@unique([tbxId, package])
+  @@map("transaction_packages")
+}
+
+model CustomerDevelopers {
+  id          Int       @id @default(autoincrement())
+  customerId  Int       @map("customer_id")
+  discordId   String    @map("discord_id")
+  addedBy     String    @map("added_by")
+  addedAt     DateTime  @default(now()) @map("added_at")
+  customer    Customers @relation(fields: [customerId], references: [id])
+
+  @@unique([customerId, discordId])
+  @@map("customer_developers")
+}
+
+model TicketCategories {
+  id            Int                 @id @default(autoincrement())
+  name          String              @unique
+  description   String?
+  emoji         String?
+  categoryId    String              @unique @map("category_id")
+  requireTbxId  Int                 @default(1) @map("require_tbxid")
+  fields        TicketCategoryFields[]
+  tickets       Tickets[]
+
+  @@map("ticket_categories")
+}
+
+model TicketCategoryFields {
+  id            Int             @id @default(autoincrement())
+  category      Int
+  label         String
+  placeholder   String
+  required      Int             @default(1)
+  shortField    Int             @default(1) @map("short_field")
+  minLength     Int?            @map("min_length")
+  maxLength     Int?            @map("max_length")
+  ticketCategory TicketCategories @relation(fields: [category], references: [id])
+
+  @@map("ticket_category_fields")
+}
+
+model Tickets {
+  id              Int         @id @default(autoincrement())
+  category        Int
+  ticketName      String      @map("ticket_name")
+  channelId       String      @map("channel_id")
+  userId          String      @map("user_id")
+  userUsername    String      @map("user_username")
+  userDisplayName String      @map("user_display_name")
+  openedAt        DateTime    @default(now()) @map("opened_at")
+  closedAt        DateTime?   @map("closed_at")
+  ticketCategory  TicketCategories @relation(fields: [category], references: [id])
+  members         TicketMembers[]
+  messages        TicketMessages[]
+
+  @@map("tickets")
+}
+
+model TicketMembers {
+  id        Int       @id @default(autoincrement())
+  ticket    Int
+  userId    String    @map("user_id")
+  removed   Int       @default(0)
+  addedBy   String?   @map("added_by")
+  addedAt   DateTime  @default(now()) @map("added_at")
+  tickets   Tickets   @relation(fields: [ticket], references: [id])
+
+  @@unique([ticket, userId])
+  @@map("ticket_members")
+}
+
+model TicketMessages {
+  id          Int       @id @default(autoincrement())
+  ticket      Int
+  authorId    String    @map("author_id")
+  displayName String    @map("display_name")
+  avatar      String?
+  content     String?
+  editedAt    DateTime? @map("edited_at")
+  sentAt      DateTime  @default(now()) @map("sent_at")
+  tickets     Tickets   @relation(fields: [ticket], references: [id])
+
+  @@map("ticket_messages")
+}

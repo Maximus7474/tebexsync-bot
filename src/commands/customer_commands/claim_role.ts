@@ -1,9 +1,9 @@
 import { GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import Database from "../../utils/database";
 import tebexHandler from "../../handlers/tebex_handler";
 import SettingsManager from "../../handlers/settings_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
+import { prisma } from "../../utils/prisma";
 
 export default new SlashCommand({
   name: 'claim-role',
@@ -13,10 +13,10 @@ export default new SlashCommand({
     .setDescription('Claim your customer role to access support channels.')
     .addStringOption(o =>
       o.setName('transactionid')
-      .setDescription('Transaction ID provided by the purchase')
-      .setRequired(true)
-      .setMinLength(20)
-      .setMaxLength(45)
+        .setDescription('Transaction ID provided by the purchase')
+        .setRequired(true)
+        .setMinLength(20)
+        .setMaxLength(45)
     ),
   callback: async (logger, client, interaction) => {
     const { user, member, options, guild } = interaction;
@@ -31,23 +31,37 @@ export default new SlashCommand({
 
     const transactionId = options.getString('transactionid', true);
 
-    let purchaseLog = await Database.get<{
+    const purchaseLog = await prisma.transactions.findUnique({
+      where: {
+        tbxId: transactionId,
+      },
+      select: {
+        customerId: true,
+        refund: true,
+        chargeback: true,
+        customer: {
+          select: {
+            discordId: true,
+          },
+        },
+      },
+    });
+
+    const flattenedPurchaseLog: {
       customer_id: number | null;
       discord_id: string | null;
       refund: 0 | 1;
       chargeback: 0 | 1;
-    }>(`SELECT
-          C.discord_id,
-          C.id as customer_id,
-          T.refund,
-          T.chargeback
-        FROM transactions AS T
-        LEFT JOIN customers AS C ON T.customer_id = C.id
-        WHERE T.tbxid = ?`,
-      [transactionId]
-    );
+    } | null = purchaseLog ? {
+      customer_id: purchaseLog.customerId,
+      discord_id: purchaseLog.customer?.discordId ?? null,
+      refund: purchaseLog.refund as 0 | 1,
+      chargeback: purchaseLog.chargeback as 0 | 1,
+    } : null;
 
-    if (!purchaseLog) {
+    let currentPurchaseLog = flattenedPurchaseLog;
+
+    if (!currentPurchaseLog) {
       try {
         const rawPurchaseData = await tebexHandler.verifyPurchase(transactionId);
 
@@ -61,27 +75,21 @@ export default new SlashCommand({
 
         const customerId = await PurchaseManager.getCustomerId(user.id);
 
-        const id = await Database.insert(
-          "INSERT INTO `transactions` (`tbxid`, `customer_id`, `purchaser_name`, `purchaser_uuid`, `refund`, `chargeback`) VALUES (?, ?, ?, ?, ?, ?)",
-          [
-            transactionId,
-            customerId,
-            rawPurchaseData.data.player.name,
-            rawPurchaseData.data.player.uuid,
-            rawPurchaseData.data.status === 'Refund' ? 1 : 0,
-            rawPurchaseData.data.status === 'Chargeback' ? 1 : 0,
-          ]
-        );
+        const isRefund = rawPurchaseData.data.status === 'Refund';
+        const isChargeback = rawPurchaseData.data.status === 'Chargeback';
 
-        for (let i = 0; i < rawPurchaseData.data.packages.length; i++) {
-          const packageData = rawPurchaseData.data.packages[i];
-          await Database.insert(
-            'INSERT OR IGNORE INTO `transaction_packages` (`tbxid`, `package`) VALUES (?, ?)',
-            [ transactionId, packageData.name ]
-          );
-        }
+        const newTransaction = await prisma.transactions.create({
+          data: {
+            tbxId: transactionId,
+            customerId: customerId,
+            purchaserName: rawPurchaseData.data.player.name,
+            purchaserUuid: rawPurchaseData.data.player.uuid,
+            refund: isRefund ? 1 : 0,
+            chargeback: isChargeback ? 1 : 0,
+          }
+        });
 
-        if (!id) {
+        if (!newTransaction) {
           logger.error('Unable to insert purchase to database !');
           logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert into database.`);
 
@@ -92,13 +100,42 @@ export default new SlashCommand({
           return;
         }
 
-        purchaseLog = {
+        const packageNames = rawPurchaseData.data.packages.map((p: { name: string }) => p.name);
+
+        const existingPackages = await prisma.transactionPackages.findMany({
+          where: {
+            tbxId: transactionId,
+            package: {
+              in: packageNames,
+            },
+          },
+          select: {
+            package: true,
+          },
+        });
+
+        const existingPackageNames = new Set(existingPackages.map(p => p.package));
+
+        const packagesToCreate = packageNames
+          .filter(packageName => !existingPackageNames.has(packageName))
+          .map(packageName => ({
+            tbxId: transactionId,
+            package: packageName,
+          }));
+
+        if (packagesToCreate.length > 0) {
+          await prisma.transactionPackages.createMany({
+            data: packagesToCreate,
+          });
+        }
+
+        currentPurchaseLog = {
           customer_id: customerId,
           discord_id: user.id,
-          refund: rawPurchaseData.data.status === 'Refund' ? 1 : 0,
-          chargeback: rawPurchaseData.data.status === 'Chargeback' ? 1 : 0
+          refund: isRefund ? 1 : 0,
+          chargeback: isChargeback ? 1 : 0
         }
-      } catch (err: any) {  // eslint-disable-line
+      } catch (err: any) { // eslint-disable-line
         logger.error('Unable to insert purchase to database !');
         logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert into database.`);
 
@@ -110,15 +147,15 @@ export default new SlashCommand({
       }
     }
 
-    if (purchaseLog.chargeback === 1 || purchaseLog.refund === 1) {
+    if (currentPurchaseLog.chargeback === 1 || currentPurchaseLog.refund === 1) {
       interaction.reply({
-        content: `The purchase linked to this transaction id is not claimable, reason: \`a ${purchaseLog.chargeback === 1 ? 'chargeback' : 'refund'} has been made.\``,
+        content: `The purchase linked to this transaction id is not claimable, reason: \`a ${currentPurchaseLog.chargeback === 1 ? 'chargeback' : 'refund'} has been made\`.`,
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    if (purchaseLog.customer_id && purchaseLog.discord_id !== user.id) {
+    if (currentPurchaseLog.customer_id && currentPurchaseLog.discord_id !== user.id) {
       interaction.reply({
         content: 'The purchase linked to this transaction ID has already been claimed.\nIf you are related to the user, you can ask him to add you as his developer.',
         flags: MessageFlags.Ephemeral,
@@ -126,17 +163,20 @@ export default new SlashCommand({
       return;
     }
 
-    if (!purchaseLog.customer_id) {
-      let customer = await Database.get<{id: number}>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ user.id ]);
+    if (!currentPurchaseLog.customer_id) {
+      let customer = await prisma.customers.findUnique({
+        where: { discordId: user.id },
+        select: { id: true },
+      });
 
       if (!customer) {
-        const id = await Database.insert(
-          "INSERT INTO `customers` (`discord_id`) VALUES (?)",
-          [ user.id ]
-        );
-
-        if (!id) {
-          logger.error('Unable to insert customer to database !');
+        try {
+          customer = await prisma.customers.create({
+            data: { discordId: user.id },
+            select: { id: true },
+          });
+        } catch (e) {
+          logger.error('Unable to insert customer to database !', e);
           logger.error(`Claim role was executed by ${user.username} (${user.id}) with transaction id: ${transactionId} but failed to insert him into the customer channel.`);
 
           interaction.reply({
@@ -145,11 +185,12 @@ export default new SlashCommand({
           });
           return;
         }
-
-        customer = { id };
       }
 
-      await Database.update('UPDATE `transactions` SET `customer_id` = ? WHERE `tbxid` = ?', [ customer.id, transactionId ]);
+      await prisma.transactions.update({
+        where: { tbxId: transactionId },
+        data: { customerId: customer.id }
+      });
     }
 
     const customerRole = SettingsManager.get('customer_role') as string;

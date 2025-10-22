@@ -1,7 +1,7 @@
 import Logger from "./logger";
 const logger = new Logger('UTILS');
 
-export const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
+export const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}|[a-z0-9]{40}/g;
 
 export function GetUtcTimestamp(time: string, date: string, invoker?: string): number {
   const dateRegex = /^\d{2}\/\d{2}\/\d{2}$/;
@@ -87,6 +87,21 @@ export const GetChannelIdFromMention = (mention: string): string | null => {
 const roleMentionRegex = /<@&(\d+)>/;
 export const GetRoleIdFromMention = (mention: string): string | null => {
   const mentionMatch = mention.match(roleMentionRegex);
+  if (mentionMatch) {
+    return mentionMatch[1];
+  }
+
+  const idMatch = mention.match(idRegex);
+  if (idMatch) {
+    return idMatch[1];
+  }
+
+  return null;
+}
+
+const userMentionRegex = /<@&(\d+)>/;
+export const GetUserIdFromMention = (mention: string): string | null => {
+  const mentionMatch = mention.match(userMentionRegex);
   if (mentionMatch) {
     return mentionMatch[1];
   }

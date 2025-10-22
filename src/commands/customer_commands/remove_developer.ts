@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
-import Database from "../../utils/database";
 import settings_handler from "../../handlers/settings_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
+import { prisma } from "../../utils/prisma";
 
 export default new SlashCommand({
   name: 'remove-developer',
@@ -30,7 +30,7 @@ export default new SlashCommand({
 
     const hasPurchases = customerId ? await PurchaseManager.checkCustomerPurchases(customerId) : false;
 
-    if (!hasPurchases) {
+    if (!hasPurchases || !customerId) {
       interaction.reply({
         content: 'No linked or active purchases',
         flags: MessageFlags.Ephemeral,
@@ -38,10 +38,14 @@ export default new SlashCommand({
       return;
     }
 
-    const currentDevs = await Database.all<{discord_id: string}>(
-      'SELECT `discord_id` AS `count` FROM `customer_developers` WHERE `customer_id` = ?',
-      [ customerId ]
-    );
+    const currentDevs = await prisma.customerDevelopers.findMany({
+      where: {
+        customerId: customerId,
+      },
+      select: {
+        discordId: true,
+      },
+    });
 
     if (currentDevs.length === 0) {
       interaction.reply({
@@ -53,7 +57,7 @@ export default new SlashCommand({
 
     const developer = options.getUser('member', true);
 
-    const listed = currentDevs.find(({ discord_id }) => discord_id === developer.id);
+    const listed = currentDevs.find(({ discordId }) => discordId === developer.id);
 
     if (!listed) {
       interaction.reply({
@@ -63,10 +67,14 @@ export default new SlashCommand({
       return;
     }
 
-    Database.execute(
-      'DELETE FROM `customer_developers` WHERE `customer_id` = ? AND `discord_id` = ?',
-      [ customerId, developer.id ]
-    );
+    await prisma.customerDevelopers.delete({
+      where: {
+        customerId_discordId: {
+          customerId: customerId,
+          discordId: developer.id,
+        },
+      },
+    });
 
     const member = await guild.members.fetch({ user: developer, cache: false });
 

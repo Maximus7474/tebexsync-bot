@@ -1,8 +1,8 @@
 import { DiscordClient } from "@types";
-import Database from "../utils/database";
 import Logger from "../utils/logger";
 import env from "../utils/config";
 import SettingsManager from "../handlers/settings_handler";
+import { prisma } from "../utils/prisma";
 
 const logger = new Logger('Purchase Manager');
 
@@ -39,20 +39,31 @@ class PurchaseManager {
   public static async getCustomerId(discordId: string, skipCreate: true): Promise<null | number>;
   public static async getCustomerId(discordId: string): Promise<number>;
   public static async getCustomerId(discordId: string, skipCreate: boolean = false): Promise<null | number> {
-    const customer = await Database.get<{ id: number }>('SELECT `id` FROM `customers` WHERE `discord_id` = ?', [ discordId ]);
+    const customer = await prisma.customers.findUnique({
+      where: {
+        discordId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
     if (customer) return customer.id;
 
     if (skipCreate) return null;
 
-    const id = await Database.insert(
-      "INSERT INTO `customers` (`discord_id`) VALUES (?)",
-      [discordId]
-    );
+    const createdCustomer = await prisma.customers.create({
+      data: {
+        discordId,
+      },
+      select: {
+        id: true,
+      }
+    });
 
-    if (!id) throw new Error(`Unable to insert ${discordId} into customers database table.`);
+    if (!createdCustomer) throw new Error(`Unable to insert ${discordId} into customers database table.`);
 
-    return id;
+    return createdCustomer.id;
   }
 
   /**
@@ -63,23 +74,37 @@ class PurchaseManager {
    * @returns {boolean} has valid purchases
    */
   public static async checkCustomerPurchases(customerid: number): Promise<boolean> {
-    const customer = await Database.get<{ id: number; discord_id: string; }>('SELECT `id`, `discord_id` FROM `customers` WHERE `id` = ?', [ customerid ]);
+    const customer = await prisma.customers.findUnique({
+      where: {
+        id: customerid,
+      },
+      select: {
+        id: true,
+        discordId: true,
+      },
+    })
 
     if (!customer) {
       logger.warn('checkCustomerPurchases received an inexistant customer id:', customerid, '- exiting...');
       return false;
     }
 
-    const purchases = await Database.all<{ id: number; refund: 0 | 1, chargeback: 0 | 1 }>(
-      'SELECT `id`, `refund`, `chargeback` FROM `transactions` WHERE `customer` = ?',
-      [ customer.id ],
-    );
+    const purchases = await prisma.transactions.findMany({
+      where: {
+        customerId: customer.id,
+      },
+      select: {
+        id: true,
+        refund: true,
+        chargeback: true,
+      },
+    });
 
     let hasActivePurchases;
     if (purchases.length === 0) {
       hasActivePurchases = false;
 
-      await Database.execute('DELETE FROM `customers` WHERE `id` = ?', [ customer.id ]);
+      await prisma.customers.delete({ where: { id: customer.id } });
 
     } else {
       const activePurchases = purchases.filter(({ chargeback, refund }) => (chargeback !== 1 && refund !== 1) );
@@ -93,7 +118,7 @@ class PurchaseManager {
 
     if (!guild) throw new Error('MAIN_GUILD_ID did not produce a valid guild object !');
 
-    const customerUser = await guild.members.fetch(customer.discord_id);
+    const customerUser = await guild.members.fetch(customer.discordId);
 
     if (customerUser) {
       const customerRole = SettingsManager.get('customer_role') as string;
@@ -102,29 +127,30 @@ class PurchaseManager {
       .catch(err => {
         logger.error(
           'Unable to remove customer role from',
-          customer.discord_id,
+          customer.discordId,
           'err:', err
         );
       });
     }
 
-    const developers = await Database.all<{ id: number; discord_id: string; }>(
-      'SELECT `id`, `discord_id` FROM `customer_developers` WHERE `customer_id` = ?',
-      [ customer.id ]
-    );
+    const developers = await prisma.customerDevelopers.findMany({
+      where: {
+        customerId: customer.id,
+      },
+    });
 
     if (developers.length > 0) {
       const customersDevRole = SettingsManager.get('customers_dev_role') as string;
 
-      for (const { discord_id } of developers) {
-        const developerUser = await guild.members.fetch(discord_id);
+      for (const { discordId } of developers) {
+        const developerUser = await guild.members.fetch(discordId);
 
         if (developerUser) {
           await developerUser.roles.remove(customersDevRole)
           .catch(err => {
             logger.error(
               'Unable to remove customers developer role from',
-              discord_id,
+              discordId,
               'err:', err
             );
           });
@@ -132,10 +158,7 @@ class PurchaseManager {
       }
     }
 
-    await Database.execute(
-      'DELETE FROM `customer_developers` WHERE `customer_id` = ?',
-      [ customer.id ]
-    );
+    await prisma.customerDevelopers.deleteMany({ where: { customerId: customer.id }});
 
     logger.info(`Customer (${customer.id}) no longer has any active purchases`)
 
