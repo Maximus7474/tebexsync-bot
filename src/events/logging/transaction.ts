@@ -6,8 +6,6 @@ import tebexHandler from "../../handlers/tebex_handler";
 import PurchaseManager from "../../handlers/purchase_handler";
 import { prisma } from "../../utils/prisma";
 
-// const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
-
 export default new EventHandler({
   name: 'TRANSACTION-LOGGING',
   eventName: Events.MessageCreate,
