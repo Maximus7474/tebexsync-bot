@@ -1,5 +1,4 @@
 import { DiscordClient } from "@types";
-import Database from "../utils/database";
 import Logger from "../utils/logger";
 import env from "../utils/config";
 import SettingsManager from "../handlers/settings_handler";
@@ -90,16 +89,22 @@ class PurchaseManager {
       return false;
     }
 
-    const purchases = await Database.all<{ id: number; refund: 0 | 1, chargeback: 0 | 1 }>(
-      'SELECT `id`, `refund`, `chargeback` FROM `transactions` WHERE `customer` = ?',
-      [ customer.id ],
-    );
+    const purchases = await prisma.transactions.findMany({
+      where: {
+        customerId: customer.id,
+      },
+      select: {
+        id: true,
+        refund: true,
+        chargeback: true,
+      },
+    });
 
     let hasActivePurchases;
     if (purchases.length === 0) {
       hasActivePurchases = false;
 
-      await Database.execute('DELETE FROM `customers` WHERE `id` = ?', [ customer.id ]);
+      await prisma.customers.delete({ where: { id: customer.id } });
 
     } else {
       const activePurchases = purchases.filter(({ chargeback, refund }) => (chargeback !== 1 && refund !== 1) );
@@ -127,11 +132,6 @@ class PurchaseManager {
         );
       });
     }
-
-    // const developers = await Database.all<{ id: number; discord_id: string; }>(
-    //   'SELECT `id`, `discord_id` FROM `customer_developers` WHERE `customer_id` = ?',
-    //   [ customer.id ]
-    // );
 
     const developers = await prisma.customerDevelopers.findMany({
       where: {
