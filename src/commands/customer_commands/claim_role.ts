@@ -149,7 +149,7 @@ export default new SlashCommand({
 
     if (currentPurchaseLog.chargeback === 1 || currentPurchaseLog.refund === 1) {
       interaction.reply({
-        content: `The purchase linked to this transaction id is not claimable, reason: \`a ${currentPurchaseLog.chargeback === 1 ? 'chargeback' : 'refund'} has been made.\``,
+        content: `The purchase linked to this transaction id is not claimable, reason: \`a ${currentPurchaseLog.chargeback === 1 ? 'chargeback' : 'refund'} has been made\`.`,
         flags: MessageFlags.Ephemeral,
       });
       return;
