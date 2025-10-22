@@ -1,10 +1,10 @@
 export interface TicketCategory {
-  id: number;
   name: string;
-  description: string;
+  id: number;
+  description: string | null;
   emoji: string | null;
-  category_id: string;
-  require_tbxid: 1 | 0;
+  categoryId: string;
+  requireTbxId: number;
 }
 
 export interface TicketCategoryField {
