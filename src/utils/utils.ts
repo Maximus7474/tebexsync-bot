@@ -1,7 +1,7 @@
 import Logger from "./logger";
 const logger = new Logger('UTILS');
 
-export const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}/g;
+export const tbxIdRegex = /tbx-[a-z0-9]{11,14}-[a-z0-9]{6}|[a-z0-9]{40}/g;
 
 export function GetUtcTimestamp(time: string, date: string, invoker?: string): number {
   const dateRegex = /^\d{2}\/\d{2}\/\d{2}$/;

@@ -259,7 +259,7 @@ class Ticket {
       let value = response, name = label;
       if (tbxIdRegex.test(response) && purchase.success) {
         name = 'Purchase Info';
-        value = `* Transaction ID: ${purchase.data.id}\n`+
+        value = `* Transaction ID: ${response}\n`+
                 `* Status: ${purchase.data.status}\n`+
                 `* Packages: ${purchase.data.packages.map(e => e.name).join(', ')}`;
       }
