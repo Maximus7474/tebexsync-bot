@@ -3,7 +3,7 @@ import Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
 const logger = new Logger('Settings Manager');
 
-export type SettingDataDisplayTypes = 'number' | 'string' | 'object' | 'channel_id' | 'role_id';
+export type SettingDataDisplayTypes = 'number' | 'string' | 'object' | 'channel_id' | 'role_id' | 'user_id';
 export type SettingDataType = number | string | object | null;
 
 class SettingsManager {
@@ -19,7 +19,7 @@ class SettingsManager {
           parsedData = parseInt(value, 10);
         } else if (dataType === 'object') {
           parsedData = JSON.parse(value);
-        } else if (dataType === 'string' || dataType === 'role_id' || dataType === 'channel_id') {
+        } else if (dataType === 'string' || dataType === 'role_id' || dataType === 'channel_id' || dataType === 'user_id') {
           parsedData = value;
         } else {
           logger.error('Invalid "dataType" found in settings table!');
@@ -50,6 +50,7 @@ class SettingsManager {
   }
 
   getDataType(key: string): SettingDataDisplayTypes | null {
+    console.log('Getting type for key:', key, 'type:', this.settings.get(key));
     return this.settings.get(key)?.type ?? null;
   }
 
