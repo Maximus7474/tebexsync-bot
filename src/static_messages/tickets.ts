@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags, StringSelectMenuBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from "discord.js";
 import StaticMessage from "../classes/static_messages";
 import Ticket from "../handlers/ticket_handler";
 
@@ -22,18 +22,25 @@ export default new StaticMessage({
       .setColor(0x00AEFF);
 
     const stringOptions = categories.length
-      ? categories.map(({ id, name, description }) => ({
-          default: false,
-          label: name,
-          description,
-          value: id.toString(),
-        }))
-      : [{
-        default: true,
-        label: 'No available categories',
-        description: 'Tell the server owners to configure it.',
-        value: '-1',
-      }];
+      ? categories.map(({ id, name, description }) => {
+          const option = new StringSelectMenuOptionBuilder()
+            .setLabel(name)
+            .setValue(id.toString())
+            .setDefault(false);
+
+          if (description) {
+            option.setDescription(description)
+          }
+
+          return option;
+        })
+      : [
+          new StringSelectMenuOptionBuilder()
+            .setLabel('No available categories')
+            .setDescription('Tell the server owners to configure it.')
+            .setValue('-1')
+            .setDefault(true)
+        ];
 
     const button = new StringSelectMenuBuilder()
       .setCustomId('open-ticket')
