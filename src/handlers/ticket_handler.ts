@@ -190,7 +190,7 @@ class Ticket {
       return;
     }
 
-    modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+    await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const formattedResponses = modal.components
       .map(component => {
