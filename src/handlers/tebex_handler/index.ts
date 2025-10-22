@@ -1,6 +1,6 @@
 import Config from '../../utils/config';
 import Logger from '../../utils/logger';
-import { TebexAPIError, TebexPayment, TebexPurchasePayload, RawTebexPurchasePayload } from '../../types';
+import { TebexAPIError, TebexPayment, TebexPurchasePayload, TebexWebhookJsonPayload, RawTebexWebhookPayload } from '../../types';
 import { GetUtcTimestamp } from '../../utils/utils';
 
 import verify_purchase from './verify_purchase';
@@ -29,8 +29,8 @@ class TebexApi {
     return await verify_purchase(this.logger, this.TEBEX_API_BASE_URL, this.tebexSecret, transactionId);
   }
 
-  parsePurchaseJson(json: string): TebexPurchasePayload | null {
-    let purchaseData: RawTebexPurchasePayload | null;
+  parsePurchaseJson(json: string): TebexWebhookJsonPayload | null {
+    let purchaseData: RawTebexWebhookPayload | null;
 
     try {
       purchaseData = JSON.parse(json);
