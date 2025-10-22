@@ -23,12 +23,18 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 ---
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
-- [📦 Setup](#-setup)
-- [🚀 Deploying](#-deploying)
-- [Deployment Steps:](#deployment-steps)
-- [🗄️ Database Management](#️-database-management)
-- [⚠️ Security Warning: DO NOT MAKE THE `.env` FILE PUBLIC](#️-security-warning-do-not-make-the-env-file-public)
+- [TebexSync-Discord-Bot](#tebexsync-discord-bot)
+  - [Features](#features)
+    - [Ticket System Features:](#ticket-system-features)
+    - [Customer Role Management](#customer-role-management)
+  - [Table of Contents](#table-of-contents)
+  - [📦 Setup](#-setup)
+  - [🚀 Deploying](#-deploying)
+    - [Deployment Steps:](#deployment-steps)
+  - [🗄️ Database Management](#️-database-management)
+    - [Changing the Database Provider](#changing-the-database-provider)
+    - [Step-by-Step Guide for Schema Changes](#step-by-step-guide-for-schema-changes)
+  - [⚠️ Security Warning: DO NOT MAKE THE `.env` FILE PUBLIC](#️-security-warning-do-not-make-the-env-file-public)
 
 ---
 
@@ -47,10 +53,10 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 
 ## 🚀 Deploying
 
-- The TypeScript code is built using `tsc`.  
+- The TypeScript code is built using `tsc`.
 - The `scripts/build.js` file also transfers the `base.sql` files from the `database` folder to ensure smooth operation.
 
-**Note:**  
+**Note:**
 Building the project does not deploy the slash commands to Discord's API. You must run the `deploy` script to do so.
 
 ### Deployment Steps:
@@ -63,22 +69,74 @@ Building the project does not deploy the slash commands to Discord's API. You mu
    pnpm run deploy
    ```
 
-**Important:**  
+**Important:**
 The deploy script reads command data from the `dist/` directory. Ensure you run the build script before deploying.
 
 ---
 
 ## 🗄️ Database Management
 
-- The bot currently supports multiple database systems but is configured to run with `sqlite` by default.
-- Contributions for integrating other database systems (e.g., MySQL, MariaDB, PostgreSQL, MongoDB) are welcome.  
-  However, the project aims to avoid adding unused dependencies.
+The bot uses **Prisma** as its ORM (Object-Relational Mapper) to interact with the database. By default, it's configured to use **SQLite**, making initial setup simple and quick since SQLite is file-based and requires no separate server.
+
+### Changing the Database Provider
+
+If you need to change from SQLite to a different database like PostgreSQL or MySQL, you can do so by modifying the Prisma schema.
+
+1.  **Modify the `schema.prisma` file:** Open the `prisma/schema.prisma` file. Locate the `datasource db` block and change the `provider` field to your desired database.
+
+    ```prisma
+    // For PostgreSQL
+    datasource db {
+      provider = "postgresql"
+      url      = env("DATABASE_URL")
+    }
+
+    // For MySQL
+    datasource db {
+      provider = "mysql"
+      url      = env("DATABASE_URL")
+    }
+    ```
+
+2.  **Update the `.env` file:** Change the `DATABASE_URL` in your `.env` file to match your new database's connection string.
+
+    ```env
+    # For PostgreSQL
+    DATABASE_URL="postgresql://user:password@host:port/database?schema=public"
+
+    # For MySQL
+    DATABASE_URL="mysql://user:password@host:port/database"
+    ```
+
+-----
+
+### Step-by-Step Guide for Schema Changes
+
+When you make changes to your database schema in the `prisma/schema.prisma` file, you need to follow these steps to apply those changes to your database.
+
+1.  **Generate the Prisma Client:** After editing your schema, run the `prisma generate` command. This command updates the generated Prisma Client with the new types and methods, ensuring your code remains type-safe.
+
+    ```bash
+    pnpm prisma generate
+    ```
+
+2.  **Run a Migration:** To apply the schema changes to your actual database, you'll use Prisma Migrate. The `migrate dev` command creates a new migration file and applies it.
+
+    ```bash
+    pnpm prisma migrate dev --name <migration_name>
+    ```
+
+    Replace `<migration_name>` with a descriptive name for your changes (e.g., `add-user-model`). This process ensures your database schema stays in sync with your Prisma schema.
+
+For more detailed information on Prisma, including advanced migration strategies and different data modeling techniques, you can refer to the official documentation. 📖
+
+**Prisma Documentation:** [https://www.prisma.io/docs/](https://www.google.com/search?q=https://www.prisma.io/docs/)
 
 ---
 
 ## ⚠️ Security Warning: DO NOT MAKE THE `.env` FILE PUBLIC
 
-By default, the `.env` file is ignored by Git (via `.gitignore`).  
+By default, the `.env` file is ignored by Git (via `.gitignore`).
 If you disable this, it can lead to severe security risks, such as:
 
 - Hackers gaining access to your authentication token and using it maliciously.
