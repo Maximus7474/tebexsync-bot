@@ -13,7 +13,8 @@
     "dev-deploy": "npm run build && npm run deploy",
     "start": "node dist/index.js",
     "prisma": "prisma",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "setup": "pnpm i && pnpm prisma generate && pnpm prisma migrate deploy && pnpm seed"
   },
   "keywords": [
     "discordbot",
