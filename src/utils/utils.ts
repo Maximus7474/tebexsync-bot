@@ -98,3 +98,18 @@ export const GetRoleIdFromMention = (mention: string): string | null => {
 
   return null;
 }
+
+const userMentionRegex = /<@&(\d+)>/;
+export const GetUserIdFromMention = (mention: string): string | null => {
+  const mentionMatch = mention.match(userMentionRegex);
+  if (mentionMatch) {
+    return mentionMatch[1];
+  }
+
+  const idMatch = mention.match(idRegex);
+  if (idMatch) {
+    return idMatch[1];
+  }
+
+  return null;
+}
