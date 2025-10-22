@@ -1,10 +1,10 @@
 import { Events, Message } from "discord.js";
-import EventHandler from "../../classes/event_handler";
+import EventHandler from "../classes/event_handler";
 
-import SettingsManager from "../../handlers/settings_handler";
-import tebexHandler from "../../handlers/tebex_handler";
-import PurchaseManager from "../../handlers/purchase_handler";
-import { prisma } from "../../utils/prisma";
+import SettingsManager from "../handlers/settings_handler";
+import tebexHandler from "../handlers/tebex_handler";
+import PurchaseManager from "../handlers/purchase_handler";
+import { prisma } from "../utils/prisma";
 
 export default new EventHandler({
   name: 'TRANSACTION-LOGGING',
