@@ -8,7 +8,7 @@ CREATE TABLE "settings" (
 -- CreateTable
 CREATE TABLE "customers" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "discord_id" TEXT,
+    "discord_id" TEXT NOT NULL,
     "added_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE "ticket_messages" (
     "ticket" INTEGER NOT NULL,
     "author_id" TEXT NOT NULL,
     "display_name" TEXT NOT NULL,
-    "avatar" TEXT NOT NULL,
+    "avatar" TEXT,
     "content" TEXT,
     "edited_at" DATETIME,
     "sent_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -109,6 +109,9 @@ CREATE UNIQUE INDEX "customers_discord_id_key" ON "customers"("discord_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "transactions_tbxid_key" ON "transactions"("tbxid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "transaction_packages_tbxid_package_key" ON "transaction_packages"("tbxid", "package");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "customer_developers_customer_id_discord_id_key" ON "customer_developers"("customer_id", "discord_id");
