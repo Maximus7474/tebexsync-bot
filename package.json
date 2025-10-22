@@ -1,6 +1,6 @@
 {
   "name": "discord-ts-boilerplate",
-  "version": "2.0.0",
+  "version": "1.1.2",
   "description": "Discord bot built in TypeScript using discord.js",
   "main": "dist/index.js",
   "type": "module",
@@ -22,7 +22,7 @@
     "typescript"
   ],
   "author": "Maximus7474",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@prisma/client": "6.15.0",
     "axios": "^1.10.0",
