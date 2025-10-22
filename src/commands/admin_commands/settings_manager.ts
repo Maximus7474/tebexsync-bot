@@ -1,7 +1,7 @@
 import { EmbedBuilder, InteractionContextType, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../../classes/slash_command";
 import SettingsManager, { SettingDataType, type SettingDataDisplayTypes } from "../../handlers/settings_handler";
-import { GetChannelIdFromMention, GetRoleIdFromMention } from "../../utils/utils";
+import { GetChannelIdFromMention, GetRoleIdFromMention, GetUserIdFromMention } from "../../utils/utils";
 
 function displaySettingValue(value: string | number | object, type: SettingDataDisplayTypes) {
   switch (type) {
@@ -157,7 +157,22 @@ export default new SlashCommand({
           else throw new Error('No role was found');
         } catch (err) {
           await interaction.reply({
-            content: `The role mention for \`${key}\` is invalid. Please mention a valid channel.\n> ${(err as Error).message}`,
+            content: `The role mention for \`${key}\` is invalid. Please mention a valid role.\n> ${(err as Error).message}`,
+            ephemeral: true
+          });
+
+          return;
+        }
+      } else if (type === 'user_id') {
+        try {
+          const userId = GetUserIdFromMention(rawValue);
+
+          if (!userId) throw new Error('No user mention was found');
+
+          parsedValue = userId;
+        } catch (err) {
+          await interaction.reply({
+            content: `The user mention for \`${key}\` is invalid. Please mention a valid user.\n> ${(err as Error).message}`,
             ephemeral: true
           });
 
