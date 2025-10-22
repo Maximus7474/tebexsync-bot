@@ -21,7 +21,6 @@ import {
   TextInputStyle,
   User,
 } from "discord.js";
-import Database from "../utils/database";
 import Tebex from "./tebex_handler";
 import Logger from "../utils/logger";
 import env from "../utils/config";
@@ -83,7 +82,8 @@ class Ticket {
   }
 
   static async getCategories(): Promise<TicketCategory[]> {
-    return await Database.all<TicketCategory>('SELECT * FROM `ticket_categories`');
+    const categories = await prisma.ticketCategories.findMany();
+    return categories;
   }
 
   static async getCategoryData({ id, name }: { id?: number | null; name?: string | null }): Promise<TicketCategoryData | null> {
@@ -129,7 +129,7 @@ class Ticket {
       .setCustomId(modalInteractionId)
       .setTitle(`Ticket: ${categoryData.name}`);
 
-    if (categoryData.require_tbxid) {
+    if (categoryData.requireTbxId) {
       const textInput = new TextInputBuilder()
         .setCustomId(`tbxid`)
         .setLabel('Transaction ID')
@@ -205,7 +205,7 @@ class Ticket {
       })
       .filter((e) => !!(e.label && e.response && e.id));
 
-    if (categoryData.require_tbxid) {
+    if (categoryData.requireTbxId) {
       const tbxid = formattedResponses.find((item) => item.id === 'tbxid')?.response;
 
       if (!tbxid) {
@@ -226,10 +226,10 @@ class Ticket {
       }
     }
 
-    const categoryChannel = await client.channels.fetch(categoryData.category_id) as CategoryChannel | null;
+    const categoryChannel = await client.channels.fetch(categoryData.categoryId) as CategoryChannel | null;
 
     if (!categoryChannel) {
-      logger.error(`Unable to find category channel (${categoryData.category_id}) for category: ${categoryData.name} !`);
+      logger.error(`Unable to find category channel (${categoryData.categoryId}) for category: ${categoryData.name} !`);
 
       modalInteraction.editReply({
         content: `Unable to open a ticket, please inform the developers that no category was found.`
