@@ -1,4 +1,4 @@
-import { DiscordClient, TicketCategory, TicketCategoryData } from "@types";
+import { DiscordClient, TebexAPIError, TebexPayment, TicketCategory, TicketCategoryData } from "@types";
 import {
   ActionRowBuilder,
   APIEmbedField,
@@ -24,7 +24,7 @@ import {
 import Tebex from "./tebex_handler";
 import Logger from "../utils/logger";
 import env from "../utils/config";
-import { FormatDateForDB } from "../utils/utils";
+import { FormatDateForDB, tbxIdRegex } from "../utils/utils";
 import { prisma } from "../utils/prisma";
 
 const logger = new Logger('ticket-handler');
@@ -205,6 +205,7 @@ class Ticket {
       })
       .filter((e) => !!(e.label && e.response && e.id));
 
+    let purchase: { success: true; data: TebexPayment; } | TebexAPIError;
     if (categoryData.requireTbxId) {
       const tbxid = formattedResponses.find((item) => item.id === 'tbxid')?.response;
 
@@ -215,7 +216,7 @@ class Ticket {
         return;
       }
 
-      const purchase = await Tebex.verifyPurchase(tbxid);
+      purchase = await Tebex.verifyPurchase(tbxid);
 
       if (!purchase.success) {
         modalInteraction.editReply({
@@ -254,11 +255,21 @@ class Ticket {
       content: `Your ticket has been opened: ${channel.url}.`
     });
 
-    const fields: APIEmbedField[] = formattedResponses.map(({ label, response }) => ({
-      name: label,
-      value: response,
-      inline: false,
-    }));
+    const fields: APIEmbedField[] = formattedResponses.map(({ label, response }) => {
+      let value = response, name = label;
+      if (tbxIdRegex.test(response) && purchase.success) {
+        name = 'Purchase Info';
+        value = `* Transaction ID: ${purchase.data.id}\n`+
+                `* Status: ${purchase.data.status}\n`+
+                `* Packages: ${purchase.data.packages.map(e => e.name).join(', ')}`;
+      }
+
+      return {
+        name,
+        value,
+        inline: false,
+      }
+    });
 
     const embed = new EmbedBuilder()
       .setTitle(`${categoryData.name} ticket - ${user.displayName}`)
