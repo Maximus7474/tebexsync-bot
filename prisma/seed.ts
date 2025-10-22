@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 async function main() {
   const defaultSettings = [
-    { name: 'customer_role', dataType: 'string', value: 'role_id' },
-    { name: 'customers_dev_role', dataType: 'string', value: 'role_id' },
-    { name: 'payment_log_channel', dataType: 'string', value: 'channel_id' },
-    { name: 'notifying_discord_id', dataType: 'string', value: 'user_id' },
+    { name: 'customer_role', dataType: 'role_id', value: 'role_id' },
+    { name: 'customers_dev_role', dataType: 'role_id', value: 'role_id' },
+    { name: 'payment_log_channel', dataType: 'channel_id', value: 'channel_id' },
+    { name: 'notifying_discord_id', dataType: 'user_id', value: 'user_id' },
     { name: 'max_developers', dataType: 'number', value: '2' },
   ];
 
