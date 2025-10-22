@@ -23,7 +23,7 @@ model Settings {
 
 model Customers {
   id                  Int                 @id @default(autoincrement())
-  discordId           String?             @unique @map("discord_id")
+  discordId           String              @unique @map("discord_id")
   addedAt             DateTime            @default(now()) @map("added_at")
   transactions        Transactions[]
   customerDevelopers  CustomerDevelopers[]
