@@ -39,3 +39,11 @@ For each of the three actions you just created, you'll need to paste a specific 
     ```
 
 Once you've saved these actions, your Tebex account will now send detailed notifications to your bot whenever a purchase, refund, or chargeback occurs for that package.
+
+> [!NOTE]
+> If you want to extend the capacity of the logging with more information please note that the `"action"` is purely hardcoded for this bot's behaviour.
+> Here are all the fields you can obtain from an individual purchased package using this method:
+> ```json
+>  {"username": "{username}", "price": "{price}", "transaction": "{transaction}", "packageName": "{packageName}", "time": "{time}", "date": "{date}", "email": ">{email}", "purchaserName": "{purchaserName}", "purchaserUuid": "{purchaserUuid}", "server": "{server}", "discordId": "{discordId}"}
+> ```
+> Please note that some fields will not work within the general notification panel of tebex's creator space (i.e. {discordId})
