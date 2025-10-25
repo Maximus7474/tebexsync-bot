@@ -193,11 +193,15 @@ class Ticket {
     await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const formattedResponses = modal.components
+      .filter((component): component is ActionRowBuilder<TextInputBuilder> =>
+        component instanceof ActionRowBuilder && component.components.length > 0
+      )
       .map(component => {
         const label = component.components[0].data.label as string;
         const id = component.components[0].data.custom_id as string;
 
-        const response = responseData.get(id)!.value;
+        const fieldData = responseData.get(id)!;
+        const response = 'value' in fieldData ? fieldData.value : '';
 
         return {
           label, response, id

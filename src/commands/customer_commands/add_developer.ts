@@ -69,7 +69,7 @@ export default new SlashCommand({
     const devRoleId = settings_handler.get('customers_dev_role') as string;
     const role = await guild.roles.fetch(devRoleId);
 
-    const alreadyListed = currentDevs.find(({ discordId }) => discordId === developer.id)
+    const alreadyListed = currentDevs.find(({ discordId }: { discordId: string }) => discordId === developer.id)
     if (alreadyListed && developer.roles.cache.has(devRoleId)) {
       interaction.reply({
         content: `<@${developer.id}> is already added as your developer`,
