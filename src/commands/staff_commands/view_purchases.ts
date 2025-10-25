@@ -49,12 +49,23 @@ export default new SlashCommand({
         },
       });
 
+      const text = purchases.map(
+        (e, i) => {
+          const unixTimestamp = GetUnixSecondsFromDate(e.createdAt);
+          const packages = e.transactionPackages.map(e => `${e.package}`).join('\n  *');
+
+          const flag = e.chargeback || e.refund
+            ? `- :x: **${e.chargeback ? 'CHARGEBACK' : 'REFUND'}** -`
+            : '-';
+
+          return  `${i + 1}. ${e.tbxId} ${flag} <t:${unixTimestamp}:d>\n`+
+                  `  * ${packages}`;
+      }).join('\n')
+
       container
         .setAccentColor(1950208)
         .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(
-            purchases.map((e, i) => (`${i + 1}. ${e.tbxId} - <t:${GetUnixSecondsFromDate(e.createdAt)}:d>\n  * ${e.transactionPackages.map(e => `${e.package}`).join('\n  *')}`)).join('\n')
-          ),
+          new TextDisplayBuilder().setContent(text),
         );
     } else {
       container
