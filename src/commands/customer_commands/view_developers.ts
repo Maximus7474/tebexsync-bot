@@ -49,7 +49,7 @@ export default new SlashCommand({
 
     interaction.reply({
       content: `Current developers linked (${currentDevs.length}/${settings_handler.get('max_developers')}):\n` + currentDevs
-        .map(({ discordId }, idx) => `${idx + 1}. <@${discordId}>`)
+        .map(({ discordId }: { discordId: string }, idx: number) => `${idx + 1}. <@${discordId}>`)
         .join('\n'),
       flags: MessageFlags.Ephemeral,
     });

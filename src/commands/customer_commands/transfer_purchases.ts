@@ -135,7 +135,7 @@ export default new SlashCommand({
     });
 
     await interaction.respond(
-      transactions.map(({ tbxId, transactionPackages }) => ({ name: `${tbxId}: ${transactionPackages.map(e => e.package).join(', ')}`, value: tbxId }))
+      transactions.map(({ tbxId, transactionPackages }: { tbxId: string; transactionPackages: { package: string }[] }) => ({ name: `${tbxId}: ${transactionPackages.map((e: { package: string }) => e.package).join(', ')}`, value: tbxId }))
     );
   },
 });

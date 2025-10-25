@@ -57,7 +57,7 @@ export default new SlashCommand({
 
     const developer = options.getUser('member', true);
 
-    const listed = currentDevs.find(({ discordId }) => discordId === developer.id);
+    const listed = currentDevs.find(({ discordId }: { discordId: string }) => discordId === developer.id);
 
     if (!listed) {
       interaction.reply({

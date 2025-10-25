@@ -107,7 +107,7 @@ class PurchaseManager {
       await prisma.customers.delete({ where: { id: customer.id } });
 
     } else {
-      const activePurchases = purchases.filter(({ chargeback, refund }) => (chargeback !== 1 && refund !== 1) );
+      const activePurchases = purchases.filter(({ chargeback, refund }: { chargeback: number; refund: number }) => (chargeback !== 1 && refund !== 1) );
 
       hasActivePurchases = activePurchases.length > 0;
     }

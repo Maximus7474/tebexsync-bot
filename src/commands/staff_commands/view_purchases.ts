@@ -50,9 +50,9 @@ export default new SlashCommand({
       });
 
       const text = purchases.map(
-        (e, i) => {
+        (e: { tbxId: string; chargeback: number; refund: number; createdAt: Date; transactionPackages: { package: string }[] }, i: number) => {
           const unixTimestamp = GetUnixSecondsFromDate(e.createdAt);
-          const packages = e.transactionPackages.map(e => `${e.package}`).join('\n  *');
+          const packages = e.transactionPackages.map((e: { package: string }) => `${e.package}`).join('\n  *');
 
           const flag = e.chargeback || e.refund
             ? `- :x: **${e.chargeback ? 'CHARGEBACK' : 'REFUND'}** -`
