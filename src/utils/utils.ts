@@ -61,6 +61,10 @@ export function FormatDateForDB(date?: Date): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+export function GetUnixSecondsFromDate(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}
+
 const idRegex = /(\d+)/;
 
 const channelMentionRegex = /<#(\d+)>/;
