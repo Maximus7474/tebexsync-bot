@@ -100,7 +100,7 @@ export default new SlashCommand({
           return;
         }
 
-        const packageNames = rawPurchaseData.data.packages.map((p: { name: string }) => p.name);
+        const packageNames = rawPurchaseData.data.packages.map((p: { name: string; id: number }) => p.name);
 
         const existingPackages = await prisma.transactionPackages.findMany({
           where: {
@@ -114,7 +114,7 @@ export default new SlashCommand({
           },
         });
 
-        const existingPackageNames = new Set(existingPackages.map(p => p.package));
+        const existingPackageNames = new Set(existingPackages.map((p: { package: string }) => p.package));
 
         const packagesToCreate = packageNames
           .filter(packageName => !existingPackageNames.has(packageName))
