@@ -20,12 +20,16 @@ const fields = {
 
   // Tebex secret
   TEBEX_SECRET: process.env.TEBEX_SECRET,
+
+  // Cfx forum cookie
+  CFX_COOKIE: process.env.CFX_COOKIE,
 };
 
 interface Config extends DBConnectionDetails {
   DISCORD_BOT_TOKEN: string;
   MAIN_GUILD_ID: string;
-  TEBEX_SECRET: string | false
+  TEBEX_SECRET: string | false;
+  CFX_COOKIE: string | false;
 };
 
 if (!fields.DISCORD_BOT_TOKEN) {
@@ -46,6 +50,7 @@ const env: Config = {
   SQL_DATABASE: fields.SQL_DATABASE,
   SQL_PASSWORD: fields.SQL_PASSWORD,
   TEBEX_SECRET: fields.TEBEX_SECRET ?? false,
+  CFX_COOKIE: fields.CFX_COOKIE ?? false,
 }
 
 export default env;
