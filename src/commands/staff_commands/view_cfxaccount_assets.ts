@@ -46,20 +46,19 @@ export default new SlashCommand({
             ? response.map(item => ({
                 name: item.asset,
                 value: `* Granted at: <t:${item.granted_at}>\n`+
-                  (item.transferred_from ? `* Transferred from: \`${item.transferred_from}\`\n` : 'Original owner\n')+
-                  (item.transferred_to ? `* Transferred to: \`${item.transferred_to}\`` : 'Not transferred'),
+                  (item.transferred_from ? `* Transferred from: \`${item.transferred_from}\`\n` : '* Original owner\n')+
+                  (item.transferred_to ? `* Transferred to: \`${item.transferred_to}\`` : '* Not transferred'),
                 inline: false,
               }))
             : []
         );
 
-      interaction.reply({
+      interaction.editReply({
         embeds: [embed],
       });
     } catch (err) {
-      interaction.reply({
+      interaction.editReply({
         content: `Unable to obtain cfx assets for username: \`${username}\`\nError:\n> ${(err as Error).message}`,
-        flags: MessageFlags.Ephemeral
       });
     }
   },
