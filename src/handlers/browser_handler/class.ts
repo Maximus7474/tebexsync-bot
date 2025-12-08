@@ -12,6 +12,17 @@ import { getCookies, getRedirectUrl, setForumCookie } from './utils';
 
 const logger = new Logger('BROWSER-HANDLER');
 
+/*
+
+  CODE CREDIT ATTRIBUTION
+
+  This code was inspired from the cfx-portal-upload repo from Tynopia.
+
+  url:      https://github.com/Tynopia/cfx-portal-upload
+  license:  MIT License - https://github.com/Tynopia/cfx-portal-upload/blob/main/LICENSE
+
+  */
+
 export class CfxPortalSearch {
   private static async preparePuppeteer(): Promise<void> {
     if (process.env.RUNNER_TEMP === undefined) {
