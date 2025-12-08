@@ -23,7 +23,7 @@ class PurchaseManager {
   public static setDiscordClient(client: DiscordClient) {
     this.discordClient = client;
 
-    client.once('ready', () => {
+    client.once('clientReady', () => {
       this.clientReady = true;
       logger.info('Discord client is ready (post-init)');
     });
