@@ -6,3 +6,4 @@ export * from './tebex_api';
 export * from './transaction_logging';
 export * from './database';
 export * from './tickets';
+export * from './browser';
