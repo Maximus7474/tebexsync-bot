@@ -71,7 +71,7 @@ export class CfxPortalSearch {
     });
   }
 
-  async getUserAssets(username: string): Promise<CfxGrantedAsset[] | string> {
+  async getUserAssets(username: string): Promise<CfxGrantedAsset[]> {
     try {
       await this.setupPage();
 
@@ -93,7 +93,7 @@ export class CfxPortalSearch {
       logger.error(`Unable to obtain assets for user: ${username}`);
       logger.error(`Error:`, (err as Error).message);
 
-      throw new Error(`Unable to obtain assets for user: ${username}`);
+      throw new Error(`Unable to obtain assets for user: ${username} - Error: ${(err as Error).message}`);
     }
   }
 }
