@@ -29,6 +29,7 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 Please refer to the following sections to setup the bot properly:
 * [Configure tebex logging](./docs/configure-tebex-logging.md)
 * [Obtaining tebex api key](./docs/obtain-tebex-secret.md)
+* [Obtaining Cfx Auth cookie](./docs/obtain-cfx-cookie.md)
 
 ---
 
