@@ -107,4 +107,10 @@ export class CfxPortalSearch {
       throw new Error(`Unable to obtain assets for user: ${username} - Error: ${(err as Error).message}`);
     }
   }
+
+  async closeInstance(): Promise<void> {
+    await this.browser.close();
+    await this.browser.disconnect();
+    logger.info('CfxPortalSearch instance was closed');
+  }
 }

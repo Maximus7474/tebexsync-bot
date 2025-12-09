@@ -7,8 +7,7 @@ let timeout: NodeJS.Timeout | null = null;
 async function clearInstance() {
   if (!instance) return;
 
-  // ToDo:
-  //  * Create a disconnect method for the instance
+  await instance.closeInstance();
 
   instance = null;
   timeout = null;
