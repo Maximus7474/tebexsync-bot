@@ -9,7 +9,7 @@ export default new SlashCommand({
   name: 'claim-role',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('claimrole')
+    .setName('claim_role')
     .setDescription('Claim your customer role to access support channels.')
     .addStringOption(o =>
       o.setName('transactionid')

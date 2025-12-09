@@ -8,7 +8,7 @@ export default new SlashCommand({
   name: 'view-purchases',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('view-purchase')
+    .setName('view_purchase')
     .setDescription('View the purchases claimed by a user')
     .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
     .addUserOption(o =>
