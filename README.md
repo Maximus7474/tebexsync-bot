@@ -5,6 +5,8 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 > [!IMPORTANT]
 > This project is **not affiliated** in any way with Tebex Limited.
 > It is a third party application provided and maintained by Maximus7474 to help organizations selling on tebex to grant customer roles on their discord server and provide systems to simplify purchase verification and providing support.
+>
+> **Acceptance of Terms:** By using, running, or otherwise interacting with the code within this repository, you agree to the established [Terms of Service](./tos.md).
 
 ## Features
 
