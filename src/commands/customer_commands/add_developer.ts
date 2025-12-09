@@ -8,7 +8,7 @@ export default new SlashCommand({
   name: 'add-developer',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('adddeveloper')
+    .setName('add_developer')
     .setDescription('Add a developer to also gain access to support channels.')
     .addUserOption(o =>
       o.setName('member')

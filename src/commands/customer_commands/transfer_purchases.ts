@@ -8,7 +8,7 @@ export default new SlashCommand({
   name: 'transfer-purchase',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('transferpurchase')
+    .setName('transfer_purchase')
     .setDescription('Transfer one of your purchases to a new account.')
     .addUserOption(o =>
       o.setName('member')

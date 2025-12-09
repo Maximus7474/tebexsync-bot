@@ -8,7 +8,7 @@ export default new SlashCommand({
   name: 'view-developers',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('viewdevelopers')
+    .setName('view_developers')
     .setDescription('Add a developer to also gain access to support channels.'),
   callback: async (logger, client, interaction) => {
     const { user, guild } = interaction;

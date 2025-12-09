@@ -12,7 +12,7 @@ export default new SlashCommand({
   name: 'verify-transaction',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('verify')
+    .setName('verify_transaction')
     .setDescription('Verify a transaction ID')
     .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
     .addStringOption(o =>

@@ -8,7 +8,7 @@ export default new SlashCommand({
   name: 'remove-developer',
   guildSpecific: true,
   slashcommand: new SlashCommandBuilder()
-    .setName('removedeveloper')
+    .setName('remove_developer')
     .setDescription('Remove a developer that is linked to your purchase.')
     .addUserOption(o =>
       o.setName('member')
