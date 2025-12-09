@@ -5,6 +5,8 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 > [!IMPORTANT]
 > This project is **not affiliated** in any way with Tebex Limited.
 > It is a third party application provided and maintained by Maximus7474 to help organizations selling on tebex to grant customer roles on their discord server and provide systems to simplify purchase verification and providing support.
+>
+> **Acceptance of Terms:** By using, running, or otherwise interacting with the code within this repository, you agree to the established [Terms of Service](./tos.md).
 
 ## Features
 
@@ -22,11 +24,20 @@ TebexSync-Discord-Bot seamlessly integrates with your Tebex store to automatical
 
 ---
 
+## Configuration
+
+Please refer to the following sections to setup the bot properly:
+* [Configure tebex logging](./docs/configure-tebex-logging.md)
+* [Obtaining tebex api key](./docs/obtain-tebex-secret.md)
+
+---
+
 ## Table of Contents
 - [TebexSync-Discord-Bot](#tebexsync-discord-bot)
   - [Features](#features)
     - [Ticket System Features:](#ticket-system-features)
     - [Customer Role Management](#customer-role-management)
+  - [Configuration](#configuration)
   - [Table of Contents](#table-of-contents)
   - [📦 Setup](#-setup)
   - [🚀 Deploying](#-deploying)
