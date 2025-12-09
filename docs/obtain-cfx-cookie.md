@@ -2,6 +2,9 @@
 
 This guide will walk you through the process of locating and copying your Cfx forum authentication cookie, which is required for your bot to manage asset grants via your account.
 
+> [!IMPORTANT]
+> **Risk Warning**: This guide uses a method to automate access to the Cfx Portal via your connection cookie. This approach is not explicitly prohibited by Cfx, however, it has been stated in unofficial channels that people using external systems to communicate via software with the Cfx Portal can be subject to sanctions. Use this system at your own risk.
+
 ---
 
 ### Step 1: Access the Cfx Forums
