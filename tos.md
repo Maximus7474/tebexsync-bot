@@ -33,7 +33,16 @@ The Bot is designed to be **self-hosted**, meaning you are fully responsible for
 
 * **Host Responsibility:** You are solely responsible for securing your hosting environment, protecting sensitive credentials (such as API keys and connection cookies), and ensuring the Bot's configuration is correct.
 * **Voluntary Use:** Your decision to use this Bot is entirely voluntary. The Bot's maintainers, contributors, and developers (collectively, the "Maintainers") offer the software *as-is*, without warranty of any kind.
-* **Limitation of Liability:** You agree that the Maintainers are **not responsible for any direct, indirect, incidental, or consequential damages** that may arise from the use or inability to use the Bot, including but not limited to data loss, unauthorized access, synchronization errors, or any operational failures. **Using this bot is your choice, and in no way is it the Maintainers' responsibility if anything goes wrong.**
+
+#### 4.1. Cfx/FiveM Integration Risk
+
+* The functionality within the Bot that utilizes a Cfx connection cookie to manage asset grants is an external system communicating with the Cfx Portal.
+* You acknowledge that while this approach may not be explicitly prohibited, using external systems to interact with the Cfx Portal may subject your account to sanctions or restrictions by the platform administrators.
+* **You accept all risks associated with using the Cfx integration functionality.** The Maintainers are not responsible for any punitive actions, account suspensions, or data loss resulting from your use of this feature.
+
+#### 4.2. Limitation of Liability
+
+* You agree that the Maintainers are **not responsible for any direct, indirect, incidental, or consequential damages** that may arise from the use or inability to use the Bot, including but not limited to data loss, unauthorized access, synchronization errors, or any operational failures. **Using this bot is your choice, and in no way is it the Maintainers' responsibility if anything goes wrong.**
 
 ---
 
