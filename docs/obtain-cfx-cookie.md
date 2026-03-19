@@ -4,6 +4,9 @@ This guide will walk you through the process of locating and copying your Cfx fo
 
 > [!IMPORTANT]
 > **Risk Warning**: This guide uses a method to automate access to the Cfx Portal via your connection cookie. This approach is not explicitly prohibited by Cfx, however, it has been stated in unofficial channels that people using external systems to communicate via software with the Cfx Portal can be subject to sanctions. Use this system at your own risk.
+>
+> ![IMAGE](./assets/image.png)
+>
 
 ---
 
